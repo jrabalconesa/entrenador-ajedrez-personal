@@ -14,7 +14,7 @@ Aplicación web local para entrenar ajedrez de forma progresiva, clara y sin reg
 - Registro local de resultados en el navegador.
 - Sección para guardar partidas PGN y marcar errores manualmente.
 - Pantalla de progreso con aciertos por categoría, errores repetidos, temas de repaso, racha y progreso semanal.
-- Preparación visual para una futura sección de análisis automático.
+- Análisis automático offline de partidas PGN con avisos priorizados, posición crítica y práctica desde el tablero.
 
 Los datos se guardan en `localStorage`. No hay servidor externo, usuarios, pagos ni base de datos remota.
 
@@ -121,6 +121,9 @@ Las pruebas verifican:
 - migración de intentos desde `epa_attempts_v1` a `epa_attempts_v2`;
 - tolerancia ante JSON válido con estructura incompatible, guardando respaldo antes de reiniciar intentos;
 - validación básica de PGN;
+- análisis automático de PGN con avisos automáticos, severidad, alternativa sugerida y posición FEN crítica;
+- reanálisis de partidas conservando errores manuales y reemplazando avisos automáticos anteriores;
+- práctica de avisos automáticos con persistencia de repasos y aciertos;
 - prioridad adaptativa de errores básicos;
 - selección ponderada sin repetir ejercicio ni FEN durante la sesión;
 - fin de sesión cuando no quedan ejercicios elegibles;
@@ -132,6 +135,7 @@ Las pruebas verifican:
 - `src/data/diagnostic.ts`: diagnóstico inicial de 15 posiciones.
 - `src/logic/adaptive.ts`: selección adaptativa y cálculo de rendimiento.
 - `src/logic/pgn.ts`: validación básica de PGN.
+- `src/logic/gameAnalysis.ts`: análisis automático offline de partidas PGN y registro de práctica de avisos.
 - `src/storage/localStore.ts`: persistencia local.
 - `src/screens/`: pantallas principales.
 - `src/components/`: componentes reutilizables.
@@ -149,8 +153,27 @@ La selección adaptativa ya no elige siempre el mayor peso. Excluye ejercicios y
 
 Se revisó el enfoque pedagógico para mantener explicaciones breves, sin variantes largas y centradas en amenazas de una jugada, piezas indefensas, jaques, capturas, desarrollo, enroque y finales básicos.
 
+## Análisis automático de partidas
+
+La sección `Mis partidas` permite guardar un PGN externo y lanzar `Analizar partida`. El análisis actual es local y no usa servidor externo: reconstruye la partida con `chess.js`, analiza sólo el color indicado cuando se guarda la partida como blancas o negras, y analiza ambos bandos si el color queda `sin indicar`.
+
+El análisis combina reglas pedagógicas del entrenador con una evaluación práctica offline basada en material, jaques, actividad, centro y piezas indefensas. No sustituye a Stockfish, pero sirve para detectar errores claros y convertirlos en repasos.
+
+Cada aviso automático puede guardar:
+
+- jugada y número de jugada;
+- categoría del error;
+- alternativa sugerida;
+- severidad aproximada: imprecisión, error o grave;
+- pérdida aproximada en centipeones cuando procede;
+- FEN antes y después de la jugada.
+
+Los avisos automáticos aparecen ordenados por prioridad. La ficha de la partida muestra el resumen de errores y la primera posición recomendada para revisar. Al pulsar `Practicar`, la posición crítica se carga en el tablero superior. Si el jugador encuentra la alternativa sugerida, el aviso registra un acierto; si no, registra un intento y permite repetir con `Deshacer`.
+
+Reanalizar una partida reemplaza los avisos automáticos anteriores, pero conserva los errores añadidos manualmente.
+
 ## Próximas mejoras previstas
 
 - Integrar Stockfish localmente.
-- Añadir análisis PGN automático.
+- Comparar el análisis offline actual con evaluación real de motor.
 - Ampliar ejercicios de finales y planes de apertura.

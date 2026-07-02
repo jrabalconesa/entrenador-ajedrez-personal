@@ -153,6 +153,14 @@ describe('ejercicios de ajedrez', () => {
     expect(boardMoveToSan(exercise.fen, 'c1', 'h1')).toBeNull();
   });
 
+  it('permite que el alfil de b5 capture el alfil negro de d7', () => {
+    const fen = 'r2qkb1r/pppb1ppp/n7/1B1pN3/3Pn3/2P5/PP3PPP/RNBQK2R w KQkq - 2 5';
+    const move = boardMoveToSan(fen, 'b5', 'd7');
+
+    expect(legalDestinations(fen, 'b5')).toContain('d7');
+    expect(move?.san).toBe('Bxd7+');
+  });
+
   it('el diagn?stico tiene 15 posiciones con la distribuci?n solicitada', () => {
     expect(diagnosticExercises).toHaveLength(15);
     Object.entries(expectedDiagnosticCounts).forEach(([category, count]) => {

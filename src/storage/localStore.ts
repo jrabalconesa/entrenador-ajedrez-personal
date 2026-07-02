@@ -5,6 +5,15 @@ const LEGACY_ATTEMPTS_KEY = 'epa_attempts_v1';
 const GAMES_KEY = 'epa_games_v1';
 const DIAGNOSTIC_KEY = 'epa_diagnostic_v1';
 const TRAINING_DAY_KEY = 'epa_training_day_v1';
+const GAME_PREFERENCES_KEY = 'epa_game_preferences_v1';
+
+export type GamePreferences = {
+  showMoveHints: boolean;
+};
+
+const defaultGamePreferences: GamePreferences = {
+  showMoveHints: true
+};
 
 function readJson<T>(key: string, fallback: T): T {
   try {
@@ -118,6 +127,17 @@ export function saveGame(game: SavedGame) {
 export function updateGame(updatedGame: SavedGame) {
   const games = loadGames().map((game) => (game.id === updatedGame.id ? updatedGame : game));
   writeJson(GAMES_KEY, games);
+}
+
+export function loadGamePreferences(): GamePreferences {
+  const stored = readJson<Partial<GamePreferences> | null>(GAME_PREFERENCES_KEY, null);
+  return {
+    showMoveHints: typeof stored?.showMoveHints === 'boolean' ? stored.showMoveHints : defaultGamePreferences.showMoveHints
+  };
+}
+
+export function saveGamePreferences(preferences: GamePreferences) {
+  writeJson(GAME_PREFERENCES_KEY, preferences);
 }
 
 export function loadDiagnosticResult(): DiagnosticResult | null {

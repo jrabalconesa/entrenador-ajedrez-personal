@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Flame, Target, TrendingUp } from 'lucide-react';
 import ProgressBar from '../components/ProgressBar';
 import SectionHeader from '../components/SectionHeader';
@@ -12,6 +13,7 @@ interface ProgressScreenProps {
 }
 
 export default function ProgressScreen({ attempts, games }: ProgressScreenProps) {
+  const [showAllCategories, setShowAllCategories] = useState(false);
   const stats = getCategoryStats(attempts);
   const total = attempts.length;
   const correct = attempts.filter((attempt) => attempt.correct).length;
@@ -24,6 +26,11 @@ export default function ProgressScreen({ attempts, games }: ProgressScreenProps)
   const topError = Object.entries(repeatedErrors).sort((a, b) => b[1] - a[1])[0];
   const streak = getTrainingStreak(attempts);
   const weekCount = attempts.filter((attempt) => daysAgo(attempt.date) < 7).length;
+  const activeCategories = categories.filter((category) => {
+    const stat = stats.find((item) => item.category === category);
+    return (stat?.total ?? 0) > 0;
+  });
+  const visibleCategories = showAllCategories ? categories : (activeCategories.length > 0 ? activeCategories.slice(0, 6) : categories.slice(0, 6));
 
   return (
     <section>
@@ -51,11 +58,19 @@ export default function ProgressScreen({ attempts, games }: ProgressScreenProps)
       </div>
       <div className="progress-layout">
         <div className="progress-panel">
-          <h2>Acierto por categoría</h2>
-          {categories.map((category) => {
+          <div className="panel-heading-row">
+            <h2>Acierto por categoría</h2>
+            <button className="secondary-button compact-action" onClick={() => setShowAllCategories((value) => !value)} type="button">
+              {showAllCategories ? 'Ver menos' : 'Ver todo'}
+            </button>
+          </div>
+          {visibleCategories.map((category) => {
             const stat = stats.find((item) => item.category === category);
             return <ProgressBar key={category} label={formatCategoryLabel(category)} value={stat?.accuracy ?? 0} />;
           })}
+          {!showAllCategories && categories.length > visibleCategories.length ? (
+            <p className="compact-note">Mostrando {visibleCategories.length} de {categories.length} categorías para reducir ruido visual.</p>
+          ) : null}
         </div>
         <aside className="coaching-panel">
           <h2>Resumen de la semana</h2>

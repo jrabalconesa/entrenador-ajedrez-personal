@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Chess, type Square } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
 import { ArrowRight, Check, HelpCircle, Lightbulb } from 'lucide-react';
@@ -28,6 +28,7 @@ export default function DiagnosticScreen({ onFinished }: DiagnosticScreenProps) 
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const [illegalMessage, setIllegalMessage] = useState('');
+  const pieceClickSquareRef = useRef<string | null>(null);
 
   const result = useMemo(() => (diagnosticFinished ? buildDiagnosticResult(answers) : null), [answers, diagnosticFinished]);
 
@@ -86,7 +87,7 @@ export default function DiagnosticScreen({ onFinished }: DiagnosticScreenProps) 
     return true;
   };
 
-  const handleSquareClick = ({ square }: { square: string }) => {
+  const handleBoardClick = (square: string) => {
     if (feedback) return;
     const game = new Chess(exercise.fen);
     const clickedPiece = game.get(square as Square);
@@ -112,6 +113,21 @@ export default function DiagnosticScreen({ onFinished }: DiagnosticScreenProps) 
     }
 
     if (submitBoardMove(selectedSquare, square)) return;
+  };
+
+  const handlePieceClick = ({ square }: { square: string | null }) => {
+    if (!square) return;
+    pieceClickSquareRef.current = square;
+    handleBoardClick(square);
+  };
+
+  const handleSquareClick = ({ square }: { square: string }) => {
+    if (pieceClickSquareRef.current === square) {
+      pieceClickSquareRef.current = null;
+      return;
+    }
+
+    handleBoardClick(square);
   };
 
   const next = () => {
@@ -157,6 +173,7 @@ export default function DiagnosticScreen({ onFinished }: DiagnosticScreenProps) 
                 if (sourceSquare === targetSquare) return false;
                 return submitBoardMove(sourceSquare, targetSquare);
               },
+              onPieceClick: handlePieceClick,
               onSquareClick: handleSquareClick,
               squareStyles: buildSquareStyles(exercise.fen, selectedSquare, lastMove),
               boardStyle: {

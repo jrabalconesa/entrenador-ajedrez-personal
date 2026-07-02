@@ -73,4 +73,16 @@ describe('partida guiada', () => {
     expect(review.errors[0].playedMove).toBe('Kh1');
     expect(review.errors[0].suggestedMove).toBe('Rxd2');
   });
+
+  it('no mezcla señales positivas con una jugada marcada como error', () => {
+    const game = new Chess('r1bqk1nr/pppp1ppp/n2b4/4p3/2BPP3/8/PPP2PPP/RNBQK1NR w KQkq - 2 4');
+    const move = game.move('dxe5');
+    const review = reviewPlayerMove(move);
+
+    expect(review.hasError).toBe(true);
+    expect(review.signal).toBe('red');
+    expect(review.comment).toContain('queda marcada como error');
+    expect(review.comment).not.toContain('Buena señal');
+    expect(review.comment).not.toContain('ocupa el centro');
+  });
 });

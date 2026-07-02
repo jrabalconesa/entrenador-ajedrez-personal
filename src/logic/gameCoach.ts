@@ -144,8 +144,10 @@ export function reviewPlayerMove(move: Move): PlayerMoveReview {
 
   if (errors.length > 0) {
     const alternativeText = mainAlternative ? ` Mejor alternativa a calcular: ${mainAlternative}.` : ' Vuelve atrás y busca una jugada que elimine la amenaza principal.';
+    const errorComments = comments.filter(isErrorReviewComment);
+    const reviewText = errorComments.length > 0 ? errorComments.join(' ') : 'Antes de repetirla, revisa jaques, capturas y amenazas del rival.';
     return {
-      comment: `Tu jugada ${move.san} queda marcada como error.${alternativeText} ${comments.join(' ')}`,
+      comment: `Tu jugada ${move.san} queda marcada como error.${alternativeText} ${reviewText}`,
       errors: errors.slice(0, 2),
       hasError: true,
       signal: 'red'
@@ -211,6 +213,15 @@ function isDevelopmentMove(move: Move): boolean {
 
 function isCautionComment(comments: string[]): boolean {
   return comments.some((comment) => comment.startsWith('Atención:') || comment.startsWith('Ojo'));
+}
+
+function isErrorReviewComment(comment: string): boolean {
+  return (
+    comment.startsWith('Atención:') ||
+    comment.startsWith('Ojo') ||
+    comment.startsWith('Antes de') ||
+    comment.startsWith('La dama salió pronto')
+  );
 }
 
 function findLooseMovedPiece(game: Chess, move: Move): { comment: string; note: string } | null {

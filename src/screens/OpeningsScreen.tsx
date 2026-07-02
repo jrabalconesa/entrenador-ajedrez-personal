@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Chess, type Square } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
 import { ArrowRight, Check, HelpCircle, Lightbulb, RotateCcw, X } from 'lucide-react';
@@ -30,6 +30,7 @@ export default function OpeningsScreen() {
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [showHint, setShowHint] = useState(false);
   const [mistakes, setMistakes] = useState(0);
+  const pieceClickSquareRef = useRef<string | null>(null);
 
   const game = useMemo(() => buildPosition(line, ply), [line, ply]);
   const currentMove = line?.moves[ply] ?? null;
@@ -128,7 +129,7 @@ export default function OpeningsScreen() {
     return false;
   };
 
-  const handleSquareClick = ({ square }: { square: string }) => {
+  const handleBoardClick = (square: string) => {
     if (!isUserTurn) return;
     const clickedPiece = game.get(square as Square);
 
@@ -152,6 +153,21 @@ export default function OpeningsScreen() {
     }
 
     if (submitBoardMove(selectedSquare, square)) return;
+  };
+
+  const handlePieceClick = ({ square }: { square: string | null }) => {
+    if (!square) return;
+    pieceClickSquareRef.current = square;
+    handleBoardClick(square);
+  };
+
+  const handleSquareClick = ({ square }: { square: string }) => {
+    if (pieceClickSquareRef.current === square) {
+      pieceClickSquareRef.current = null;
+      return;
+    }
+
+    handleBoardClick(square);
   };
 
   const handlePieceDrop = ({ sourceSquare, targetSquare }: { sourceSquare: string; targetSquare: string | null }) => {
@@ -209,6 +225,7 @@ export default function OpeningsScreen() {
             options={{
               position: game.fen(),
               onPieceDrop: handlePieceDrop,
+              onPieceClick: handlePieceClick,
               onSquareClick: handleSquareClick,
               squareStyles: buildSquareStyles(game.fen(), selectedSquare, lastMove),
               boardOrientation: boardColor === 'b' ? 'black' : 'white',

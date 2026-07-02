@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Chess, type Square } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
 import { Check, HelpCircle, Lightbulb, RotateCcw, X } from 'lucide-react';
@@ -23,6 +23,7 @@ export default function ConceptsScreen() {
   const [position, setPosition] = useState(tacticalConcepts[0]?.fen ?? 'start');
   const [showPattern, setShowPattern] = useState(false);
   const [promotionPiece, setPromotionPiece] = useState<PromotionPiece>('q');
+  const pieceClickSquareRef = useRef<string | null>(null);
 
   const concept = useMemo(() => tacticalConcepts.find((item) => item.id === conceptId) ?? tacticalConcepts[0], [conceptId]);
 
@@ -71,7 +72,7 @@ export default function ConceptsScreen() {
     return true;
   };
 
-  const handleSquareClick = ({ square }: { square: string }) => {
+  const handleBoardClick = (square: string) => {
     if (!concept || feedback) return;
     const game = new Chess(concept.fen);
     const clickedPiece = game.get(square as Square);
@@ -92,6 +93,21 @@ export default function ConceptsScreen() {
     }
 
     if (submitBoardMove(selectedSquare, square)) return;
+  };
+
+  const handlePieceClick = ({ square }: { square: string | null }) => {
+    if (!square) return;
+    pieceClickSquareRef.current = square;
+    handleBoardClick(square);
+  };
+
+  const handleSquareClick = ({ square }: { square: string }) => {
+    if (pieceClickSquareRef.current === square) {
+      pieceClickSquareRef.current = null;
+      return;
+    }
+
+    handleBoardClick(square);
   };
 
   const resetExercise = () => {
@@ -134,6 +150,7 @@ export default function ConceptsScreen() {
             options={{
               position,
               onPieceDrop: ({ sourceSquare, targetSquare }) => (targetSquare && sourceSquare !== targetSquare ? submitBoardMove(sourceSquare, targetSquare) : false),
+              onPieceClick: handlePieceClick,
               onSquareClick: handleSquareClick,
               squareStyles: buildSquareStyles(concept.fen, selectedSquare, lastMove),
               boardOrientation: concept.sideToMove === 'b' ? 'black' : 'white',

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Chess, type Square } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
 import { ArrowRight, Check, Flag, HelpCircle, Lightbulb, RotateCcw, X } from 'lucide-react';
@@ -39,6 +39,7 @@ export default function ExercisesScreen({ exercises, attempts, session, onAttemp
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const [illegalMessage, setIllegalMessage] = useState('');
+  const pieceClickSquareRef = useRef<string | null>(null);
 
   const activeBlockId = session?.blockIds[currentBlockIndex] ?? null;
   const activeBlock = activeBlockId ? getTrainingBlock(activeBlockId) : null;
@@ -148,7 +149,7 @@ export default function ExercisesScreen({ exercises, attempts, session, onAttemp
     return submitBoardMove(sourceSquare, targetSquare);
   };
 
-  const handleSquareClick = ({ square }: { square: string }) => {
+  const handleBoardClick = (square: string) => {
     if (!exercise || feedback) return;
     const game = new Chess(exercise.fen);
     const clickedPiece = game.get(square as Square);
@@ -174,6 +175,21 @@ export default function ExercisesScreen({ exercises, attempts, session, onAttemp
     }
 
     if (submitBoardMove(selectedSquare, square)) return;
+  };
+
+  const handlePieceClick = ({ square }: { square: string | null }) => {
+    if (!square) return;
+    pieceClickSquareRef.current = square;
+    handleBoardClick(square);
+  };
+
+  const handleSquareClick = ({ square }: { square: string }) => {
+    if (pieceClickSquareRef.current === square) {
+      pieceClickSquareRef.current = null;
+      return;
+    }
+
+    handleBoardClick(square);
   };
 
   const nextExercise = () => {
@@ -319,6 +335,7 @@ export default function ExercisesScreen({ exercises, attempts, session, onAttemp
             options={{
               position,
               onPieceDrop: handlePieceDrop,
+              onPieceClick: handlePieceClick,
               onSquareClick: handleSquareClick,
               squareStyles: buildSquareStyles(exercise.fen, selectedSquare, lastMove),
               boardStyle: {

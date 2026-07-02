@@ -2,12 +2,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   loadAttempts,
   loadDiagnosticResult,
+  loadGamePreferences,
   loadGames,
   loadTrainingDayProgress,
   markTrainingBlockCompleted,
   saveAttempt,
   saveDiagnosticResult,
-  saveGame
+  saveGame,
+  saveGamePreferences,
+  updateGame
 } from '../storage/localStore';
 import type { DiagnosticResult, ExerciseAttempt, SavedGame } from '../types';
 
@@ -103,6 +106,48 @@ describe('almacenamiento local', () => {
 
     saveAttempt(secondAttempt);
     expect(loadAttempts().map((attempt) => attempt.id)).toEqual(['a2', 'a1']);
+  });
+
+  it('conserva los repasos de errores automáticos de partidas', () => {
+    const game: SavedGame = {
+      id: 'g-review',
+      date: '2026-07-02T10:00:00.000Z',
+      pgn: '1. e4 e5 2. Qh5 Nc6 *',
+      color: 'blancas',
+      result: '*',
+      opponent: 'Rival',
+      errors: [
+        {
+          id: 'auto-1',
+          moveNumber: '2.',
+          category: 'desarrollo y enroque',
+          note: 'La dama salió pronto.',
+          playedMove: 'Qh5',
+          suggestedMove: 'Nf3',
+          source: 'automatic',
+          practiceAttempts: 1,
+          practiceSuccesses: 1,
+          lastPracticedAt: '2026-07-02T10:05:00.000Z'
+        }
+      ]
+    };
+
+    saveGame(game);
+    updateGame({
+      ...game,
+      errors: [{ ...game.errors[0], practiceAttempts: 2, practiceSuccesses: 1 }]
+    });
+
+    expect(loadGames()[0].errors[0].practiceAttempts).toBe(2);
+    expect(loadGames()[0].errors[0].practiceSuccesses).toBe(1);
+  });
+
+  it('recuerda si las pistas de jugadas están activadas', () => {
+    expect(loadGamePreferences().showMoveHints).toBe(true);
+
+    saveGamePreferences({ showMoveHints: false });
+
+    expect(loadGamePreferences().showMoveHints).toBe(false);
   });
 
   it('marca bloques diarios completados y reinicia la marca al cambiar de día', () => {

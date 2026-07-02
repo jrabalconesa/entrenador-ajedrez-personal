@@ -94,6 +94,14 @@ export interface GameError {
   note: string;
   playedMove?: string;
   suggestedMove?: string;
+  source?: 'manual' | 'automatic';
+  severity?: 'imprecision' | 'error' | 'grave';
+  evaluationLoss?: number;
+  fenBefore?: string;
+  fenAfter?: string;
+  practiceAttempts?: number;
+  practiceSuccesses?: number;
+  lastPracticedAt?: string;
 }
 
 export interface CategoryStats {

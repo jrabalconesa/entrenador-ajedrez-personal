@@ -15,7 +15,8 @@
     "lucide-react": "latest",
     "react": "latest",
     "react-chessboard": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "stockfish": "^18.0.8"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "latest",

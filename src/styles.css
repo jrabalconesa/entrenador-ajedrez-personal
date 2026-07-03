@@ -112,6 +112,10 @@ a {
   background: #e5f1ed;
 }
 
+.nav-app-mark {
+  display: none;
+}
+
 .primary-button {
   color: #ffffff;
   background: #176b5d;
@@ -295,6 +299,43 @@ a {
   gap: 16px;
 }
 
+.training-preferences {
+  display: grid;
+  gap: 14px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e1e7e2;
+}
+
+.training-preferences > div:first-child span {
+  color: #176b5d;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.training-preferences h2 {
+  margin: 4px 0 8px;
+  font-size: 18px;
+}
+
+.training-preferences p {
+  margin: 0;
+}
+
+.preference-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.preference-grid label {
+  display: grid;
+  gap: 6px;
+  color: #526073;
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .guidance-summary {
   display: flex;
   align-items: flex-start;
@@ -380,6 +421,12 @@ a {
   color: #74301f;
   padding: 10px 12px;
   font-weight: 700;
+}
+
+.exercise-mobile-task,
+.mobile-board-feedback,
+.opening-mobile-priority {
+  display: none;
 }
 
 .exercise-panel {
@@ -609,10 +656,13 @@ textarea {
   border-bottom: 0;
 }
 
-.concept-group strong {
+.concept-group summary {
   color: #176b5d;
   font-size: 13px;
+  font-weight: 800;
   text-transform: uppercase;
+  cursor: pointer;
+  list-style-position: inside;
 }
 
 .concept-group button {
@@ -624,6 +674,28 @@ textarea {
   padding: 0 12px;
   text-align: left;
   font-weight: 800;
+}
+
+.concept-exercise-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.concept-exercise-picker button {
+  width: 38px;
+  min-height: 38px;
+  border: 1px solid #d5ded7;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #526073;
+  font-weight: 900;
+}
+
+.concept-exercise-picker button.active {
+  border-color: #176b5d;
+  background: #176b5d;
+  color: #ffffff;
 }
 
 .concept-group button.active {
@@ -1610,6 +1682,18 @@ textarea {
     min-height: 52px;
   }
 
+  .nav-app-mark {
+    display: block;
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    object-fit: cover;
+  }
+
+  .nav-button .nav-home-icon {
+    display: none;
+  }
+
   .main-content {
     padding: 24px;
   }
@@ -1667,11 +1751,30 @@ textarea {
 
 @media (max-width: 640px) {
   .main-content {
-    padding: 18px;
+    padding: 12px;
+  }
+
+  body {
+    font-size: 13px;
+  }
+
+  .section-header {
+    margin-bottom: 14px;
+  }
+
+  .section-header span {
+    font-size: 11px;
   }
 
   .section-header h1 {
-    font-size: 24px;
+    margin: 5px 0 6px;
+    font-size: 18px;
+    line-height: 1.15;
+  }
+
+  .section-header p {
+    font-size: 13px;
+    line-height: 1.34;
   }
 
   .nav-button {
@@ -1683,12 +1786,67 @@ textarea {
   .guided-controls,
   .history-filters,
   .history-row,
-  .stats-grid,
   .session-summary,
   .diagnostic-result,
   .move-form div,
   .training-progress-panel {
     grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .stats-grid .stat-card {
+    min-height: 94px;
+    align-content: start;
+    gap: 4px;
+    padding: 10px 8px;
+  }
+
+  .stats-grid .stat-card svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .stats-grid .stat-card span {
+    font-size: 11px;
+    line-height: 1.15;
+  }
+
+  .stats-grid .stat-card strong {
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .progress-panel {
+    gap: 10px;
+  }
+
+  .progress-panel .panel-heading-row {
+    gap: 8px;
+  }
+
+  .progress-panel h2,
+  .progress-layout .coaching-panel h2 {
+    font-size: 16px;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+
+  .progress-row {
+    gap: 5px;
+  }
+
+  .progress-label {
+    gap: 8px;
+    font-size: 12px;
+  }
+
+  .progress-track {
+    height: 8px;
   }
 
   .modal-backdrop {
@@ -1702,14 +1860,52 @@ textarea {
     padding: 14px;
   }
 
-  .modal-header,
+  .modal-header {
+    display: grid;
+  }
+
   .import-access-panel,
   .history-access-panel {
     display: grid;
+    grid-template-columns: 1fr;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .import-access-panel h2,
+  .history-access-panel h2,
+  .coaching-panel h2,
+  .future-panel h2,
+  .summary-card h2 {
+    font-size: 16px;
+    line-height: 1.16;
+    margin-bottom: 5px;
+  }
+
+  .import-access-panel p,
+  .history-access-panel p,
+  .coaching-panel p,
+  .future-panel p,
+  .summary-card p,
+  .hint-box,
+  .compact-note,
+  .form-message {
+    font-size: 12px;
+    line-height: 1.32;
+  }
+
+  .import-access-panel p,
+  .history-access-panel p {
+    margin-top: 5px;
   }
 
   .import-access-actions {
     justify-content: flex-start;
+  }
+
+  .import-access-actions .primary-button,
+  .import-access-actions .secondary-button {
+    min-width: 98px;
   }
 
   .history-access-panel .primary-button,
@@ -1737,5 +1933,194 @@ textarea {
 
   .guidance-summary {
     display: grid;
+  }
+
+  .preference-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .today-plan,
+  .form-panel,
+  .progress-panel,
+  .exercise-panel,
+  .coaching-panel,
+  .game-card,
+  .future-panel,
+  .opening-sidebar,
+  .opening-practice-panel,
+  .concept-list,
+  .concept-panel,
+  .guided-game-panel,
+  .summary-card,
+  .stat-card {
+    padding: 12px;
+  }
+
+  .exercise-layout,
+  .openings-layout,
+  .concept-layout,
+  .guided-game-layout {
+    gap: 12px;
+  }
+
+  .exercise-mobile-task {
+    display: grid;
+    gap: 8px;
+    width: 100%;
+    border: 1px solid #dfe5dc;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 10px;
+  }
+
+  .exercise-mobile-task strong {
+    color: #253044;
+    font-size: 15px;
+    line-height: 1.25;
+  }
+
+  .mobile-board-feedback {
+    display: grid;
+    width: 100%;
+  }
+
+  .mobile-board-feedback .primary-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .exercise-panel > .exercise-meta,
+  .exercise-panel > h2,
+  .exercise-panel > .feedback {
+    display: none;
+  }
+
+  .exercise-panel h2,
+  .concept-panel h2,
+  .opening-plan h2,
+  .opening-progress strong,
+  .coach-commentary h2,
+  .review-comments h3 {
+    font-size: 16px;
+    line-height: 1.2;
+  }
+
+  .concept-panel h3 {
+    font-size: 14px;
+  }
+
+  .tag-row span,
+  .compact-checklist span,
+  .opening-move-list span,
+  .traffic-legend {
+    font-size: 12px;
+  }
+
+  .compact-checklist {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .compact-checklist span {
+    padding: 6px;
+  }
+
+  .move-form,
+  .action-row,
+  .feedback,
+  .hint-reveal,
+  .hint-box,
+  .pre-move-checklist,
+  .opening-sidebar,
+  .opening-practice-panel,
+  .concept-list,
+  .concept-panel {
+    gap: 8px;
+  }
+
+  .opening-mobile-priority {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 12px;
+    border: 1px solid #dfe5dc;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 12px;
+  }
+
+  .opening-mobile-priority label {
+    display: grid;
+    gap: 6px;
+    font-weight: 800;
+  }
+
+  .opening-mobile-priority .opening-move-list {
+    max-height: 92px;
+    overflow: auto;
+    padding-top: 10px;
+  }
+
+  .opening-sidebar > label,
+  .opening-practice-panel > .opening-move-list {
+    display: none;
+  }
+
+  .opening-board-panel,
+  .concept-board-panel {
+    order: 1;
+  }
+
+  .opening-practice-panel,
+  .concept-panel {
+    order: 2;
+  }
+
+  .opening-sidebar,
+  .concept-list {
+    order: 3;
+  }
+
+  .opening-plan span,
+  .opening-ideas span {
+    padding: 7px 9px;
+  }
+
+  .concept-list {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .concept-group {
+    gap: 8px;
+    padding-bottom: 10px;
+  }
+
+  .concept-group:not([open]) {
+    padding-bottom: 8px;
+  }
+
+  .concept-group:not([open]) button {
+    display: none;
+  }
+
+  input,
+  select,
+  textarea {
+    padding: 10px 11px;
+  }
+
+  .primary-button,
+  .secondary-button,
+  .ghost-button,
+  .compact-action,
+  .mode-toggle button {
+    min-height: 36px;
+    padding: 7px 9px;
+    font-size: 12px;
+  }
+
+  .mode-toggle {
+    grid-template-columns: 1fr;
   }
 }

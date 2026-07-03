@@ -8,11 +8,27 @@ export const tacticalConcepts: TacticalConcept[] = [
     definition: 'Una pieza de largo alcance ataca a una pieza enemiga que bloquea el ataque contra otra pieza más valiosa.',
     pattern: 'Busca piezas alineadas: atacante, pieza intermedia y objetivo importante detrás.',
     practicalRule: 'Una pieza clavada pierde movilidad; presiónala o captura si está suficientemente defendida.',
-    fen: '4q1k1/4n3/8/2B5/8/8/8/4R1K1 w - - 0 1',
+    fen: '6k1/3q4/2n5/1B6/8/8/8/6K1 w - - 0 1',
     sideToMove: 'w',
-    question: 'La pieza negra está delante de una pieza más valiosa. ¿Cómo aprovechas la clavada?',
-    expectedMove: 'Rxe7',
-    explanation: 'La torre captura el caballo de e7. El caballo estaba clavado delante de la dama negra y no podía moverse sin dejarla expuesta.'
+    question: 'La pieza negra bloquea una diagonal hacia la dama. ¿Qué captura gana la pieza clavada?',
+    expectedMove: 'Bxc6',
+    explanation: 'El alfil captura el caballo de c6. El caballo protegía indirectamente a la dama de d7 y estaba atado a esa alineación.',
+    exercises: [
+      {
+        fen: '6k1/3q4/2n5/1B6/8/8/8/6K1 w - - 0 1',
+        sideToMove: 'w',
+        question: 'La pieza negra bloquea una diagonal hacia la dama. ¿Qué captura gana la pieza clavada?',
+        expectedMove: 'Bxc6',
+        explanation: 'El alfil captura el caballo de c6. El caballo protegía indirectamente a la dama de d7 y estaba atado a esa alineación.'
+      },
+      {
+        fen: '6k1/6q1/8/8/8/2B5/3n4/1K1R4 w - - 0 1',
+        sideToMove: 'w',
+        question: 'La torre mira una pieza que tapa a la dama. ¿Qué captura aprovecha la clavada?',
+        expectedMove: 'Rxd2',
+        explanation: 'La torre captura el caballo de d2. Si el caballo se apartaba, la dama de g7 quedaba en la línea de la torre.'
+      }
+    ]
   },
   {
     id: 'clavada-absoluta',
@@ -26,7 +42,24 @@ export const tacticalConcepts: TacticalConcept[] = [
     question: 'El caballo negro está clavado al rey. ¿Qué captura gana material con jaque?',
     expectedMove: 'Rxe7+',
     explanation: 'Rxe7+ gana el caballo clavado. Si el caballo se moviera antes, dejaría al rey negro expuesto en la columna e.',
-    validation: 'check'
+    validation: 'check',
+    exercises: [
+      {
+        fen: '4k3/4n3/8/2B5/8/8/8/4R1K1 w - - 0 1',
+        sideToMove: 'w',
+        question: 'El caballo negro está clavado al rey. ¿Qué captura gana material con jaque?',
+        expectedMove: 'Rxe7+',
+        explanation: 'Rxe7+ gana el caballo clavado. Si el caballo se moviera antes, dejaría al rey negro expuesto en la columna e.',
+        validation: 'check'
+      },
+      {
+        fen: '6k1/5n2/8/8/2B5/8/8/4K3 w - - 0 1',
+        sideToMove: 'w',
+        question: 'El caballo negro tapa la diagonal hacia su rey. ¿Qué captura elimina la pieza clavada?',
+        expectedMove: 'Bxf7+',
+        explanation: 'Bxf7+ gana el caballo clavado. El caballo no podía apartarse porque abriría la diagonal del alfil hacia el rey negro.'
+      }
+    ]
   },
   {
     id: 'clavada-relativa',
@@ -35,11 +68,27 @@ export const tacticalConcepts: TacticalConcept[] = [
     definition: 'La pieza clavada puede moverse legalmente, pero al hacerlo expondría una pieza de mayor valor detrás.',
     pattern: 'La pieza intermedia protege una dama, torre u otra pieza importante, no al rey.',
     practicalRule: 'Aunque la pieza pueda moverse, muchas veces no conviene; puedes aumentar la presión sobre ella.',
-    fen: '4q1k1/4n3/8/2B5/8/8/8/4R1K1 w - - 0 1',
+    fen: '6k1/6q1/8/8/8/2B5/3n4/1K1R4 w - - 0 1',
     sideToMove: 'w',
     question: 'El caballo está delante de la dama. ¿Qué jugada aprovecha la clavada relativa?',
-    expectedMove: 'Rxe7',
-    explanation: 'El caballo de e7 protege indirectamente a la dama de e8. Rxe7 gana la pieza clavada y conserva la presión.'
+    expectedMove: 'Rxd2',
+    explanation: 'El caballo de d2 está delante de la dama de g7 en la segunda fila. Rxd2 gana la pieza clavada y mantiene la presión sobre la dama.',
+    exercises: [
+      {
+        fen: '6k1/6q1/8/8/8/2B5/3n4/1K1R4 w - - 0 1',
+        sideToMove: 'w',
+        question: 'El caballo está delante de la dama. ¿Qué jugada aprovecha la clavada relativa?',
+        expectedMove: 'Rxd2',
+        explanation: 'El caballo de d2 está delante de la dama de g7 en la segunda fila. Rxd2 gana la pieza clavada y mantiene la presión sobre la dama.'
+      },
+      {
+        fen: '6k1/4q3/8/8/8/8/4b3/4R1K1 w - - 0 1',
+        sideToMove: 'w',
+        question: 'La torre blanca ataca una pieza que tapa a la dama. ¿Qué captura gana material?',
+        expectedMove: 'Rxe2',
+        explanation: 'Rxe2 captura el alfil que estaba delante de la dama negra. La idea es la misma: explotar la pieza intermedia.'
+      }
+    ]
   },
   {
     id: 'tenedor',
@@ -177,7 +226,8 @@ export const tacticalConcepts: TacticalConcept[] = [
     sideToMove: 'w',
     question: 'Final de reyes. ¿Qué jugada mantiene la oposición y deja al rey negro incómodo?',
     expectedMove: 'Kc3',
-    explanation: 'Kc3 mantiene al rey blanco activo y limita al rey negro. La idea de zugzwang es obligar al rival a ceder terreno.'
+    acceptedMoves: ['Ke3'],
+    explanation: 'Kc3 mantiene al rey blanco activo y limita al rey negro. Ke3 es la variante simétrica válida: ambas esperan a que el rey negro ceda terreno.'
   },
   {
     id: 'final-mate-dama',

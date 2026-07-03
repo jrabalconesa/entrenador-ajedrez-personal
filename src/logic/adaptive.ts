@@ -1,10 +1,11 @@
-import type { CategoryStats, Exercise, ExerciseAttempt, ExerciseCategory, ExerciseProgress, ScheduledReview } from '../types';
+import type { CategoryStats, Exercise, ExerciseAttempt, ExerciseCategory, ExerciseProgress, ScheduledReview, TargetLevel, TrainingPreferences } from '../types';
 
 export type SelectNextExerciseOptions = {
   today?: Date;
   seenExerciseIds?: string[];
   shownFens?: string[];
   random?: () => number;
+  preferences?: TrainingPreferences;
 };
 
 export type CreateExerciseAttemptOptions = {
@@ -214,6 +215,8 @@ export function getExerciseWeight(exercise: Exercise, attempts: ExerciseAttempt[
   else if (accuracy <= 0.8) weight += 5;
   else weight += 1;
 
+  weight += Math.max(0, exercise.difficulty - 1) * 2;
+
   const dueReviews = progress.pendingReviews.filter((review) => isSameOrBefore(review.scheduledFor, today));
   weight += dueReviews.length * (12 + getCategoryPriority(exercise.category));
 
@@ -262,17 +265,24 @@ export function selectNextExercise(
   const seenExerciseIds = new Set(options.seenExerciseIds ?? []);
   const shownFens = new Set((options.shownFens ?? []).map(normalizeFenForSession));
   const random = options.random ?? Math.random;
+  const preferences = options.preferences;
+  const hasRecentFailure = attempts
+    .filter((attempt) => attempt.attemptKind !== 'diagnostic')
+    .slice(-2)
+    .some((attempt) => !attempt.correct);
   const eligible = exercises.filter(
-    (exercise) =>
-      !seenExerciseIds.has(exercise.id) &&
-      !shownFens.has(normalizeFenForSession(exercise.fen)) &&
-      exercise.difficulty <= getAllowedDifficulty(attempts, exercise.category)
+    (exercise) => {
+      if (seenExerciseIds.has(exercise.id) || shownFens.has(normalizeFenForSession(exercise.fen))) return false;
+      const allowedDifficulty = getAllowedDifficulty(attempts, exercise.category);
+      const challengeCeiling = getChallengeCeiling(allowedDifficulty, preferences, hasRecentFailure);
+      return exercise.difficulty <= challengeCeiling;
+    }
   );
 
   if (eligible.length === 0) return null;
 
   const pool = eligible
-    .map((exercise) => ({ exercise, weight: getExerciseWeight(exercise, attempts, today) }))
+    .map((exercise) => ({ exercise, weight: Math.max(1, getExerciseWeight(exercise, attempts, today) + getPreferenceWeight(exercise, preferences)) }))
     .sort((a, b) => {
       const difference = b.weight - a.weight;
       return difference !== 0 ? difference : a.exercise.id.localeCompare(b.exercise.id);
@@ -287,6 +297,47 @@ export function selectNextExercise(
   }
 
   return pool[pool.length - 1]?.exercise ?? null;
+}
+
+export function getTargetDifficultyFloor(targetLevel: TargetLevel): number {
+  if (targetLevel === '800-1000') return 1;
+  if (targetLevel === '1000-1200') return 2;
+  if (targetLevel === '1200-1400') return 3;
+  return 4;
+}
+
+function getChallengeCeiling(allowedDifficulty: number, preferences: TrainingPreferences | undefined, hasRecentFailure: boolean): number {
+  if (!preferences) return hasRecentFailure ? allowedDifficulty : Math.min(5, allowedDifficulty + 1);
+
+  const targetFloor = getTargetDifficultyFloor(preferences.targetLevel);
+  if (preferences.challengeMode === 'repaso') return allowedDifficulty;
+
+  if (hasRecentFailure) {
+    return Math.min(5, Math.max(allowedDifficulty, Math.min(targetFloor, allowedDifficulty + 1)));
+  }
+
+  const modeBonus = preferences.challengeMode === 'retos' ? 2 : 1;
+  const targetBonus = preferences.challengeMode === 'retos' ? 1 : 0;
+  return Math.min(5, Math.max(allowedDifficulty + modeBonus, targetFloor + targetBonus));
+}
+
+function getPreferenceWeight(exercise: Exercise, preferences: TrainingPreferences | undefined): number {
+  if (!preferences) return 0;
+
+  const targetFloor = getTargetDifficultyFloor(preferences.targetLevel);
+  let weight = 0;
+
+  if (exercise.difficulty >= targetFloor) weight += preferences.challengeMode === 'retos' ? 16 : 9;
+  if (exercise.difficulty === targetFloor - 1) weight += 3;
+  if (exercise.difficulty < targetFloor - 1) weight -= 8;
+
+  if (preferences.challengeMode === 'retos') {
+    weight += exercise.difficulty * 2;
+  } else if (preferences.challengeMode === 'repaso' && exercise.difficulty > targetFloor) {
+    weight -= 10;
+  }
+
+  return weight;
 }
 
 export function getDueReviewForExercise(exerciseId: string, attempts: ExerciseAttempt[], today = new Date()): ScheduledReview | null {

@@ -1,4 +1,4 @@
-import type { DiagnosticResult, ExerciseAttempt, SavedGame, TrainingDayProgress, TrainingBlockId } from '../types';
+import type { ChallengeMode, DiagnosticResult, ExerciseAttempt, SavedGame, TargetLevel, TrainingDayProgress, TrainingBlockId, TrainingPreferences } from '../types';
 
 const ATTEMPTS_KEY = 'epa_attempts_v2';
 const LEGACY_ATTEMPTS_KEY = 'epa_attempts_v1';
@@ -6,6 +6,7 @@ const GAMES_KEY = 'epa_games_v1';
 const DIAGNOSTIC_KEY = 'epa_diagnostic_v1';
 const TRAINING_DAY_KEY = 'epa_training_day_v1';
 const GAME_PREFERENCES_KEY = 'epa_game_preferences_v1';
+const TRAINING_PREFERENCES_KEY = 'epa_training_preferences_v1';
 
 export type GamePreferences = {
   showMoveHints: boolean;
@@ -14,6 +15,14 @@ export type GamePreferences = {
 const defaultGamePreferences: GamePreferences = {
   showMoveHints: true
 };
+
+export const defaultTrainingPreferences: TrainingPreferences = {
+  targetLevel: '1200-1400',
+  challengeMode: 'equilibrado'
+};
+
+const targetLevels: TargetLevel[] = ['800-1000', '1000-1200', '1200-1400', '1400+'];
+const challengeModes: ChallengeMode[] = ['repaso', 'equilibrado', 'retos'];
 
 function readJson<T>(key: string, fallback: T): T {
   try {
@@ -138,6 +147,20 @@ export function loadGamePreferences(): GamePreferences {
 
 export function saveGamePreferences(preferences: GamePreferences) {
   writeJson(GAME_PREFERENCES_KEY, preferences);
+}
+
+export function loadTrainingPreferences(): TrainingPreferences {
+  const stored = readJson<Partial<TrainingPreferences> | null>(TRAINING_PREFERENCES_KEY, null);
+  return {
+    targetLevel: targetLevels.includes(stored?.targetLevel as TargetLevel) ? (stored?.targetLevel as TargetLevel) : defaultTrainingPreferences.targetLevel,
+    challengeMode: challengeModes.includes(stored?.challengeMode as ChallengeMode)
+      ? (stored?.challengeMode as ChallengeMode)
+      : defaultTrainingPreferences.challengeMode
+  };
+}
+
+export function saveTrainingPreferences(preferences: TrainingPreferences) {
+  writeJson(TRAINING_PREFERENCES_KEY, preferences);
 }
 
 export function loadDiagnosticResult(): DiagnosticResult | null {

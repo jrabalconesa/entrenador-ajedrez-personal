@@ -9,12 +9,13 @@ import { boardMoveToSan, kingInCheckSquare, legalDestinations } from '../logic/b
 import { boardNotationOptions } from '../logic/boardStyle';
 import { formatCategoryLabel } from '../logic/labels';
 import { saveAttempt } from '../storage/localStore';
-import type { Exercise, ExerciseAttempt, TrainingBlockId, TrainingSessionConfig } from '../types';
+import type { Exercise, ExerciseAttempt, TrainingBlockId, TrainingPreferences, TrainingSessionConfig } from '../types';
 
 interface ExercisesScreenProps {
   exercises: Exercise[];
   attempts: ExerciseAttempt[];
   session?: TrainingSessionConfig;
+  preferences: TrainingPreferences;
   onAttemptSaved: () => void;
   onBlockCompleted?: (blockId: TrainingBlockId) => void;
   onSessionFinished?: () => void;
@@ -25,10 +26,12 @@ type Feedback = {
   playedMove: string;
 };
 
-export default function ExercisesScreen({ exercises, attempts, session, onAttemptSaved, onBlockCompleted, onSessionFinished }: ExercisesScreenProps) {
+export default function ExercisesScreen({ exercises, attempts, session, preferences, onAttemptSaved, onBlockCompleted, onSessionFinished }: ExercisesScreenProps) {
   const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
   const [blockProgress, setBlockProgress] = useState<Record<string, number>>({});
-  const [currentExerciseId, setCurrentExerciseId] = useState<string | null>(() => selectExerciseForSession(exercises, attempts, session, 0)?.id ?? null);
+  const [currentExerciseId, setCurrentExerciseId] = useState<string | null>(
+    () => selectExerciseForSession(exercises, attempts, session, 0, { preferences: session?.preferences ?? preferences })?.id ?? null
+  );
   const [startedAt, setStartedAt] = useState(Date.now());
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [manualMove, setManualMove] = useState('');
@@ -47,6 +50,7 @@ export default function ExercisesScreen({ exercises, attempts, session, onAttemp
   const sessionTotal = session?.blockIds.reduce((sum, blockId) => sum + getTrainingBlock(blockId).targetExercises, 0) ?? 0;
   const sessionDone = session?.blockIds.reduce((sum, blockId) => sum + (blockProgress[blockId] ?? 0), 0) ?? sessionAttempts.length;
   const exercisePool = activeBlock ? exercises.filter((item) => activeBlock.categories.includes(item.category)) : exercises;
+  const activePreferences = session?.preferences ?? preferences;
 
   const exercise = useMemo(
     () => exercises.find((item) => item.id === currentExerciseId) ?? null,
@@ -61,7 +65,7 @@ export default function ExercisesScreen({ exercises, attempts, session, onAttemp
     setBlockProgress({});
     setSessionAttempts([]);
     setShowSessionSummary(false);
-    const selected = selectExerciseForSession(exercises, attempts, session, 0);
+    const selected = selectExerciseForSession(exercises, attempts, session, 0, { preferences: activePreferences });
     setCurrentExerciseId(selected?.id ?? null);
     setPosition(selected?.fen ?? exercises[0]?.fen ?? 'start');
     setFeedback(null);
@@ -71,7 +75,7 @@ export default function ExercisesScreen({ exercises, attempts, session, onAttemp
     setLastMove(null);
     setIllegalMessage('');
     setStartedAt(Date.now());
-  }, [session, exercises]);
+  }, [session, exercises, activePreferences]);
 
   const submitMove = (moveText: string, gaveUp = false) => {
     if (feedback || !exercise) return;
@@ -216,7 +220,8 @@ export default function ExercisesScreen({ exercises, attempts, session, onAttemp
             ...sessionAttempts
               .map((attempt) => exercises.find((item) => item.id === attempt.exerciseId)?.fen)
               .filter((fen): fen is string => Boolean(fen))
-          ]
+          ],
+          preferences: activePreferences
         });
         setCurrentBlockIndex(nextBlockIndex);
         loadExercise(selected);
@@ -231,7 +236,7 @@ export default function ExercisesScreen({ exercises, attempts, session, onAttemp
         .map((attempt) => exercises.find((item) => item.id === attempt.exerciseId)?.fen)
         .filter((fen): fen is string => Boolean(fen))
     ];
-    const selected = selectNextExercise(exercisePool, allAttempts, { today: new Date(Date.now() + 1000), seenExerciseIds, shownFens });
+    const selected = selectNextExercise(exercisePool, allAttempts, { today: new Date(Date.now() + 1000), seenExerciseIds, shownFens, preferences: activePreferences });
     if (!selected) {
       setShowSessionSummary(true);
       setCurrentExerciseId(null);
@@ -281,7 +286,7 @@ export default function ExercisesScreen({ exercises, attempts, session, onAttemp
         onNewSession={() => {
           setSessionAttempts([]);
           setShowSessionSummary(false);
-          const selected = selectNextExercise(exercises, attempts);
+          const selected = selectNextExercise(exercises, attempts, { preferences: activePreferences });
           setCurrentExerciseId(selected?.id ?? null);
           setPosition(selected?.fen ?? exercises[0]?.fen ?? 'start');
           setFeedback(null);
@@ -308,7 +313,7 @@ export default function ExercisesScreen({ exercises, attempts, session, onAttemp
         description={
           activeBlock
             ? `Progreso: ${sessionDone}/${sessionTotal} ejercicios. En este bloque: ${activeBlockDone}/${activeBlock.targetExercises}.`
-            : 'Antes de responder, revisa la lista visual y busca una razón sencilla para tu jugada.'
+            : `Nivel ${activePreferences.targetLevel}; modo ${activePreferences.challengeMode}. Revisa la lista visual antes de mover.`
         }
       />
       {activeBlock ? (
@@ -331,6 +336,13 @@ export default function ExercisesScreen({ exercises, attempts, session, onAttemp
       ) : null}
       <div className="exercise-layout">
         <div className="board-panel">
+          <div className="exercise-mobile-task">
+            <div className="tag-row exercise-meta">
+              <span>{formatCategoryLabel(exercise.category)}</span>
+              <span>Juegan {sideLabel(exercise.sideToMove)}</span>
+            </div>
+            <strong>{exercise.question}</strong>
+          </div>
           <Chessboard
             options={{
               position,
@@ -349,6 +361,19 @@ export default function ExercisesScreen({ exercises, attempts, session, onAttemp
             }}
           />
           {illegalMessage ? <p className="board-message">{illegalMessage}</p> : null}
+          {feedback ? (
+            <div className={displayedFeedbackCorrect ? 'feedback correct mobile-board-feedback' : 'feedback wrong mobile-board-feedback'}>
+              <strong>
+                {displayedFeedbackCorrect ? <Check size={20} /> : <X size={20} />}
+                {displayedFeedbackCorrect ? 'Correcto' : 'Incorrecto'}
+              </strong>
+              <p>Esperada: {exercise.expectedMove}. {exercise.explanation}</p>
+              <button className="primary-button" onClick={nextExercise} type="button">
+                <ArrowRight size={20} />
+                Siguiente ejercicio
+              </button>
+            </div>
+          ) : null}
         </div>
         <aside className="exercise-panel">
           <div className="tag-row exercise-meta">
@@ -454,7 +479,7 @@ function selectExerciseForSession(
   attempts: ExerciseAttempt[],
   session: TrainingSessionConfig | undefined,
   blockIndex: number,
-  options: { seenExerciseIds?: string[]; shownFens?: string[] } = {}
+  options: { seenExerciseIds?: string[]; shownFens?: string[]; preferences?: TrainingPreferences } = {}
 ): Exercise | null {
   if (!session) return selectNextExercise(exercises, attempts, options);
   const blockId = session.blockIds[blockIndex];

@@ -1,11 +1,13 @@
 import { Chess, type Color, type Move, type PieceSymbol } from 'chess.js';
 import { reviewPlayerMove } from './gameCoach';
+import { normalizeUciMove, StockfishClient, type StockfishAnalyzeOptions, type StockfishLine } from './stockfish';
 import type { GameError, SavedGame } from '../types';
 
 export interface GameAnalysisResult {
   errors: GameError[];
   analyzedMoves: number;
   message: string;
+  source?: 'interno' | 'stockfish';
 }
 
 export function analyzeSavedGame(game: SavedGame): GameAnalysisResult {
@@ -44,7 +46,57 @@ export function analyzeSavedGame(game: SavedGame): GameAnalysisResult {
     message:
       errors.length > 0
         ? `Análisis completado: ${errors.length} aviso${errors.length === 1 ? '' : 's'} detectado${errors.length === 1 ? '' : 's'}. ${summary}`
-        : `Análisis completado: no se detectaron errores claros en ${targetMoves.length} jugada${targetMoves.length === 1 ? '' : 's'}.`
+        : `Análisis completado: no se detectaron errores claros en ${targetMoves.length} jugada${targetMoves.length === 1 ? '' : 's'}.`,
+    source: 'interno'
+  };
+}
+
+export async function analyzeSavedGameWithStockfish(
+  game: SavedGame,
+  options: StockfishAnalyzeOptions & { maxMoves?: number } = {}
+): Promise<GameAnalysisResult> {
+  const fallback = analyzeSavedGame(game);
+  const chess = new Chess();
+
+  try {
+    chess.loadPgn(game.pgn);
+  } catch {
+    return fallback;
+  }
+
+  const playerColor = getPlayerColor(game.color);
+  const targetMoves = (playerColor ? chess.history({ verbose: true }).filter((move) => move.color === playerColor) : chess.history({ verbose: true })).slice(0, options.maxMoves ?? 12);
+  if (targetMoves.length === 0) return fallback;
+
+  const engine = new StockfishClient(options.workerUrl);
+  const engineErrors: GameError[] = [];
+
+  try {
+    for (const [index, move] of targetMoves.entries()) {
+      const line = await engine.analyzeFen(move.before, options);
+      const engineError = buildStockfishError(game.id, index, move, line);
+      if (engineError) engineErrors.push(engineError);
+    }
+  } catch {
+    return {
+      ...fallback,
+      message: `${fallback.message} Stockfish no está disponible; se usó el análisis interno.`
+    };
+  } finally {
+    engine.dispose();
+  }
+
+  const errors = sortGameErrors(mergeEngineAndInternalErrors(engineErrors, fallback.errors));
+  const summary = summarizeErrors(errors);
+
+  return {
+    errors,
+    analyzedMoves: targetMoves.length,
+    message:
+      errors.length > 0
+        ? `Análisis con Stockfish completado: ${errors.length} aviso${errors.length === 1 ? '' : 's'} detectado${errors.length === 1 ? '' : 's'}. ${summary}`
+        : `Análisis con Stockfish completado: no se detectaron errores claros en ${targetMoves.length} jugada${targetMoves.length === 1 ? '' : 's'}.`,
+    source: 'stockfish'
   };
 }
 
@@ -124,6 +176,69 @@ function findBestEvaluatedMove(game: Chess, color: Color): { move: Move; san: st
     .sort((a, b) => b.score - a.score);
 
   return evaluated[0] ?? null;
+}
+
+function buildStockfishError(gameId: string, moveIndex: number, move: Move, line: StockfishLine): GameError | null {
+  const bestMove = normalizeUciMove(line.bestMove);
+  const playedMove = `${move.from}${move.to}${move.promotion ?? ''}`;
+  if (!bestMove || bestMove === normalizeUciMove(playedMove)) return null;
+
+  const before = new Chess(move.before);
+  const suggested = uciMoveToSan(before, bestMove);
+  if (!suggested) return null;
+
+  return {
+    id: `auto-engine-${gameId}-${moveIndex}-${move.san}`,
+    moveNumber: formatMoveNumber(move.before),
+    category: chooseEvaluationCategory(suggested.move),
+    note: buildStockfishNote(move, suggested.san, line),
+    playedMove: move.san,
+    suggestedMove: suggested.san,
+    source: 'automatic',
+    severity: getStockfishSeverity(line),
+    evaluationLoss: line.score?.type === 'cp' ? Math.abs(line.score.value) : undefined,
+    fenBefore: move.before,
+    fenAfter: move.after
+  };
+}
+
+function uciMoveToSan(game: Chess, uciMove: string): { san: string; move: Move } | null {
+  try {
+    const move = game.move({
+      from: uciMove.slice(0, 2),
+      to: uciMove.slice(2, 4),
+      promotion: uciMove[4]
+    });
+    return { san: move.san, move };
+  } catch {
+    return null;
+  }
+}
+
+function buildStockfishNote(move: Move, suggestedSan: string, line: StockfishLine): string {
+  const depth = line.depth ? ` Profundidad ${line.depth}.` : '';
+  const score =
+    line.score?.type === 'mate'
+      ? ` Evaluación: mate en ${Math.abs(line.score.value)}.`
+      : line.score?.type === 'cp'
+        ? ` Evaluación aproximada: ${line.score.value} centipeones desde el turno analizado.`
+        : '';
+  const pv = line.pv?.length ? ` Línea principal: ${line.pv.slice(0, 5).join(' ')}.` : '';
+  return `${move.san} no coincide con la primera elección del motor. Mejor alternativa: ${suggestedSan}.${depth}${score}${pv}`;
+}
+
+function getStockfishSeverity(line: StockfishLine): GameError['severity'] {
+  if (line.score?.type === 'mate') return 'grave';
+  const score = Math.abs(line.score?.value ?? 0);
+  if (score >= 500) return 'grave';
+  if (score >= 250) return 'error';
+  return 'imprecision';
+}
+
+function mergeEngineAndInternalErrors(engineErrors: GameError[], internalErrors: GameError[]): GameError[] {
+  const engineKeys = new Set(engineErrors.map((error) => `${error.fenBefore}-${error.playedMove}`));
+  const complementary = internalErrors.filter((error) => !engineKeys.has(`${error.fenBefore}-${error.playedMove}`));
+  return [...engineErrors, ...complementary];
 }
 
 function evaluateMove(game: Chess, san: string, color: Color): number {

@@ -16,6 +16,7 @@ type PromotionPiece = 'q' | 'r' | 'b' | 'n';
 
 export default function ConceptsScreen() {
   const [conceptId, setConceptId] = useState(tacticalConcepts[0]?.id ?? '');
+  const [exerciseIndex, setExerciseIndex] = useState(0);
   const [manualMove, setManualMove] = useState('');
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
@@ -26,10 +27,25 @@ export default function ConceptsScreen() {
   const pieceClickSquareRef = useRef<string | null>(null);
 
   const concept = useMemo(() => tacticalConcepts.find((item) => item.id === conceptId) ?? tacticalConcepts[0], [conceptId]);
+  const conceptExercises = concept.exercises?.length ? concept.exercises : [concept];
+  const activeExercise = conceptExercises[Math.min(exerciseIndex, conceptExercises.length - 1)] ?? concept;
 
   const changeConcept = (nextId: string) => {
     const next = tacticalConcepts.find((item) => item.id === nextId) ?? tacticalConcepts[0];
     setConceptId(next.id);
+    setExerciseIndex(0);
+    setPosition((next.exercises?.[0] ?? next).fen);
+    setManualMove('');
+    setFeedback(null);
+    setSelectedSquare(null);
+    setLastMove(null);
+    setShowPattern(false);
+    setPromotionPiece('q');
+  };
+
+  const changeExercise = (nextIndex: number) => {
+    const next = conceptExercises[nextIndex] ?? conceptExercises[0];
+    setExerciseIndex(nextIndex);
     setPosition(next.fen);
     setManualMove('');
     setFeedback(null);
@@ -40,8 +56,8 @@ export default function ConceptsScreen() {
   };
 
   const submitMove = (moveText: string) => {
-    if (!concept || feedback) return;
-    const game = new Chess(concept.fen);
+    if (!concept || !activeExercise || feedback) return;
+    const game = new Chess(activeExercise.fen);
     const normalized = moveText.trim();
     if (!normalized) return;
 
@@ -50,16 +66,16 @@ export default function ConceptsScreen() {
       setPosition(game.fen());
       setLastMove({ from: move.from, to: move.to });
       setSelectedSquare(null);
-      setFeedback({ correct: sameMove(move.san, concept.expectedMove), playedMove: move.san });
+      setFeedback({ correct: isAcceptedConceptMove(move.san, activeExercise), playedMove: move.san });
     } catch {
       setFeedback({ correct: false, playedMove: normalized });
     }
   };
 
   const submitBoardMove = (from: string, to: string) => {
-    if (!concept || feedback) return false;
+    if (!concept || !activeExercise || feedback) return false;
     if (from === to) return false;
-    const result = boardMoveToSan(concept.fen, from, to, concept.validation === 'promotion' ? promotionPiece : 'q');
+    const result = boardMoveToSan(activeExercise.fen, from, to, activeExercise.validation === 'promotion' ? promotionPiece : 'q');
     if (!result) {
       setFeedback({ correct: false, playedMove: 'Jugada ilegal' });
       return false;
@@ -68,17 +84,17 @@ export default function ConceptsScreen() {
     setPosition(result.fen);
     setLastMove({ from: result.from, to: result.to });
     setSelectedSquare(null);
-    setFeedback({ correct: sameMove(result.san, concept.expectedMove), playedMove: result.san });
+    setFeedback({ correct: isAcceptedConceptMove(result.san, activeExercise), playedMove: result.san });
     return true;
   };
 
   const handleBoardClick = (square: string) => {
-    if (!concept || feedback) return;
-    const game = new Chess(concept.fen);
+    if (!concept || !activeExercise || feedback) return;
+    const game = new Chess(activeExercise.fen);
     const clickedPiece = game.get(square as Square);
 
     if (!selectedSquare) {
-      if (clickedPiece?.color === concept.sideToMove) setSelectedSquare(square);
+      if (clickedPiece?.color === activeExercise.sideToMove) setSelectedSquare(square);
       return;
     }
 
@@ -87,7 +103,7 @@ export default function ConceptsScreen() {
       return;
     }
 
-    if (clickedPiece?.color === concept.sideToMove) {
+    if (clickedPiece?.color === activeExercise.sideToMove) {
       setSelectedSquare(square);
       return;
     }
@@ -111,8 +127,8 @@ export default function ConceptsScreen() {
   };
 
   const resetExercise = () => {
-    if (!concept) return;
-    setPosition(concept.fen);
+    if (!concept || !activeExercise) return;
+    setPosition(activeExercise.fen);
     setManualMove('');
     setFeedback(null);
     setSelectedSquare(null);
@@ -121,7 +137,7 @@ export default function ConceptsScreen() {
     setPromotionPiece('q');
   };
 
-  if (!concept) return null;
+  if (!concept || !activeExercise) return null;
 
   return (
     <section>
@@ -133,8 +149,8 @@ export default function ConceptsScreen() {
       <div className="concept-layout">
         <aside className="concept-list">
           {conceptGroups.map((group) => (
-            <div className="concept-group" key={group}>
-              <strong>{group}</strong>
+            <details className="concept-group" key={group} open={group === concept.group}>
+              <summary>{group}</summary>
               {tacticalConcepts
                 .filter((item) => item.group === group)
                 .map((item) => (
@@ -142,7 +158,7 @@ export default function ConceptsScreen() {
                     {item.name}
                   </button>
                 ))}
-            </div>
+            </details>
           ))}
         </aside>
         <div className="concept-board-panel">
@@ -152,8 +168,8 @@ export default function ConceptsScreen() {
               onPieceDrop: ({ sourceSquare, targetSquare }) => (targetSquare && sourceSquare !== targetSquare ? submitBoardMove(sourceSquare, targetSquare) : false),
               onPieceClick: handlePieceClick,
               onSquareClick: handleSquareClick,
-              squareStyles: buildSquareStyles(concept.fen, selectedSquare, lastMove),
-              boardOrientation: concept.sideToMove === 'b' ? 'black' : 'white',
+              squareStyles: buildSquareStyles(activeExercise.fen, selectedSquare, lastMove),
+              boardOrientation: activeExercise.sideToMove === 'b' ? 'black' : 'white',
               boardStyle: {
                 width: 'min(100%, 520px)',
                 borderRadius: '8px',
@@ -168,16 +184,25 @@ export default function ConceptsScreen() {
         <aside className="concept-panel">
           <div className="tag-row">
             <span>{concept.group}</span>
-            <span>Juegan {concept.sideToMove === 'w' ? 'Blancas' : 'Negras'}</span>
+            <span>Juegan {activeExercise.sideToMove === 'w' ? 'Blancas' : 'Negras'}</span>
           </div>
           <h2>{concept.name}</h2>
           <p>{concept.definition}</p>
+          {conceptExercises.length > 1 ? (
+            <div className="concept-exercise-picker" aria-label="Ejercicios del concepto">
+              {conceptExercises.map((item, index) => (
+                <button className={index === exerciseIndex ? 'active' : ''} key={`${concept.id}-${item.fen}`} onClick={() => changeExercise(index)} type="button">
+                  {index + 1}
+                </button>
+              ))}
+            </div>
+          ) : null}
           <div className="concept-rule">
             <strong>Regla práctica</strong>
             <span>{concept.practicalRule}</span>
           </div>
-          <h3>{concept.question}</h3>
-          {concept.validation === 'promotion' ? (
+          <h3>{activeExercise.question}</h3>
+          {activeExercise.validation === 'promotion' ? (
             <div className="promotion-choice">
               <strong>Pieza de promoción</strong>
               <div>
@@ -235,8 +260,8 @@ export default function ConceptsScreen() {
                 {feedback.correct ? <Check size={20} /> : <X size={20} />}
                 {feedback.correct ? 'Correcto' : 'Revisa la idea'}
               </strong>
-              <p>Tu jugada: {feedback.playedMove}. Respuesta esperada: {concept.expectedMove}.</p>
-              <p>{concept.explanation}</p>
+              <p>Tu jugada: {feedback.playedMove}. Respuesta esperada: {activeExercise.expectedMove}.</p>
+              <p>{activeExercise.explanation}</p>
               <p>
                 <HelpCircle size={18} />
                 {concept.pattern}
@@ -251,6 +276,10 @@ export default function ConceptsScreen() {
 
 function sameMove(left: string, right: string): boolean {
   return left.replace(/[+#x=\s]/g, '').toLowerCase() === right.replace(/[+#x=\s]/g, '').toLowerCase();
+}
+
+function isAcceptedConceptMove(move: string, exercise: { expectedMove: string; acceptedMoves?: string[] }): boolean {
+  return [exercise.expectedMove, ...(exercise.acceptedMoves ?? [])].some((acceptedMove) => sameMove(move, acceptedMove));
 }
 
 function buildSquareStyles(fen: string, selectedSquare: string | null, lastMove: { from: string; to: string } | null): Record<string, CSSProperties> {

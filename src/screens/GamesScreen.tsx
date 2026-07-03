@@ -6,7 +6,7 @@ import SectionHeader from '../components/SectionHeader';
 import { playPositionPresets } from '../data/playPositions';
 import { kingInCheckSquare } from '../logic/boardMove';
 import { boardNotationOptions } from '../logic/boardStyle';
-import { analyzeSavedGame, mergeAutomaticAnalysis, recordGameErrorPractice } from '../logic/gameAnalysis';
+import { analyzeSavedGameWithStockfish, mergeAutomaticAnalysis, recordGameErrorPractice } from '../logic/gameAnalysis';
 import { buildCoachLogDetails } from '../logic/coachDetails';
 import { chooseCoachMove, describeCoachMove, getGameStatus, reviewPlayerMove, type CoachLevel } from '../logic/gameCoach';
 import { formatCategoryLabel } from '../logic/labels';
@@ -66,6 +66,7 @@ export default function GamesScreen({ games, onGamesChanged }: GamesScreenProps)
   const [activePracticeError, setActivePracticeError] = useState<GameError | null>(null);
   const [reviewedError, setReviewedError] = useState<GameError | null>(null);
   const [analysisMessages, setAnalysisMessages] = useState<Record<string, string>>({});
+  const [analyzingGameIds, setAnalyzingGameIds] = useState<Set<string>>(() => new Set());
   const [importOpen, setImportOpen] = useState(false);
   const [importMode, setImportMode] = useState<ImportMode>('pgn');
   const [importDragActive, setImportDragActive] = useState(false);
@@ -218,8 +219,11 @@ export default function GamesScreen({ games, onGamesChanged }: GamesScreenProps)
     readImportFile(event.dataTransfer.files[0] ?? null);
   };
 
-  const analyzeGame = (game: SavedGame) => {
-    const analysis = analyzeSavedGame(game);
+  const analyzeGame = async (game: SavedGame) => {
+    setAnalyzingGameIds((current) => new Set(current).add(game.id));
+    setAnalysisMessages((current) => ({ ...current, [game.id]: 'Analizando partida. Si Stockfish no está instalado, se usará el análisis interno.' }));
+
+    const analysis = await analyzeSavedGameWithStockfish(game, { movetimeMs: 300, timeoutMs: 1800, maxMoves: 10 });
 
     if (analysis.analyzedMoves > 0 || analysis.errors.length > 0) {
       updateGame(mergeAutomaticAnalysis(game, analysis));
@@ -227,6 +231,11 @@ export default function GamesScreen({ games, onGamesChanged }: GamesScreenProps)
     }
 
     setAnalysisMessages((current) => ({ ...current, [game.id]: analysis.message }));
+    setAnalyzingGameIds((current) => {
+      const next = new Set(current);
+      next.delete(game.id);
+      return next;
+    });
   };
 
   const practiceErrorPosition = (error: GameError) => {
@@ -747,6 +756,7 @@ export default function GamesScreen({ games, onGamesChanged }: GamesScreenProps)
       {historyOpen ? (
         <GameHistoryModal
           analysisMessages={analysisMessages}
+          analyzingGameIds={analyzingGameIds}
           games={games}
           onAnalyze={analyzeGame}
           onClose={() => setHistoryOpen(false)}
@@ -1080,6 +1090,7 @@ function ImportGameModal({
 
 function GameHistoryModal({
   analysisMessages,
+  analyzingGameIds,
   games,
   onAnalyze,
   onClose,
@@ -1088,6 +1099,7 @@ function GameHistoryModal({
   onReviewGame
 }: {
   analysisMessages: Record<string, string>;
+  analyzingGameIds: Set<string>;
   games: SavedGame[];
   onAnalyze: (game: SavedGame) => void;
   onClose: () => void;
@@ -1152,6 +1164,7 @@ function GameHistoryModal({
           {visibleGames.map((game) => {
             const info = getSavedGameInfo(game);
             const firstPracticeError = game.errors.find((error) => error.fenBefore);
+            const isAnalyzing = analyzingGameIds.has(game.id);
             return (
               <article className="history-row" key={game.id}>
                 <div>
@@ -1166,8 +1179,8 @@ function GameHistoryModal({
                   <button className="primary-button compact-action" onClick={() => onReviewGame(game)} type="button">
                     Revisar partida
                   </button>
-                  <button className="secondary-button compact-action" onClick={() => onAnalyze(game)} type="button">
-                    Analizar
+                  <button className="secondary-button compact-action" onClick={() => onAnalyze(game)} type="button" disabled={isAnalyzing}>
+                    {isAnalyzing ? 'Analizando...' : 'Analizar'}
                   </button>
                   <button className="secondary-button compact-action" onClick={() => onOpenGame(game)} type="button">
                     Abrir tablero

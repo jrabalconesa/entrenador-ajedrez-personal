@@ -48,20 +48,20 @@ describe('ejercicios de ajedrez', () => {
     exercises
       .filter((exercise) => exercise.category === 'mate en 2')
       .forEach((exercise) => {
+        expect(findMateInOneMoves(exercise.fen), `${exercise.id}: tiene mate en 1`).toEqual([]);
         [exercise.expectedMove, ...(exercise.acceptedMoves ?? [])].forEach((move) => {
           expect(isForcedMateInTwo(exercise, move), `${exercise.id}: ${move}`).toBe(true);
         });
       });
   });
 
-  it('m2-02 acepta Qc6+ como llave alternativa de mate en dos', () => {
+  it('m2-02 fuerza Ka7 y remata con Qb7#', () => {
     const exercise = exercises.find((item) => item.id === 'm2-02');
     expect(exercise).toBeDefined();
     if (!exercise) return;
 
-    expect(exercise.acceptedMoves).toContain('Qc6+');
     const game = new Chess(exercise.fen);
-    game.move('Qc6+', { strict: false });
+    game.move('Qb5', { strict: false });
     expect(game.moves()).toEqual(['Ka7']);
 
     const branch = new Chess(game.fen());
@@ -287,6 +287,15 @@ function isForcedMateInTwo(exercise: Exercise, firstMove = exercise.expectedMove
       finalPosition.move(mateMove);
       return finalPosition.isCheckmate();
     });
+  });
+}
+
+function findMateInOneMoves(fen: string): string[] {
+  const game = new Chess(fen);
+  return game.moves().filter((move) => {
+    const branch = new Chess(fen);
+    branch.move(move);
+    return branch.isCheckmate();
   });
 }
 

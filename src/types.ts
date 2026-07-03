@@ -113,6 +113,15 @@ export interface CategoryStats {
 
 export type TrainingBlockId = 'repaso' | 'tacticas' | 'concepto' | 'final-apertura';
 
+export type TargetLevel = '800-1000' | '1000-1200' | '1200-1400' | '1400+';
+
+export type ChallengeMode = 'repaso' | 'equilibrado' | 'retos';
+
+export interface TrainingPreferences {
+  targetLevel: TargetLevel;
+  challengeMode: ChallengeMode;
+}
+
 export interface TrainingBlock {
   id: TrainingBlockId;
   minutes: string;
@@ -125,6 +134,7 @@ export interface TrainingBlock {
 export interface TrainingSessionConfig {
   mode: 'single' | 'full';
   blockIds: TrainingBlockId[];
+  preferences?: TrainingPreferences;
 }
 
 export interface TrainingDayProgress {
@@ -158,6 +168,16 @@ export type ConceptGroup = 'Tácticas y movimientos clave' | 'Movimientos especi
 
 export type ConceptValidation = 'check' | 'checkmate' | 'stalemate' | 'castle' | 'en-passant' | 'promotion';
 
+export interface TacticalConceptExercise {
+  fen: string;
+  sideToMove: 'w' | 'b';
+  question: string;
+  expectedMove: string;
+  acceptedMoves?: string[];
+  explanation: string;
+  validation?: ConceptValidation;
+}
+
 export interface TacticalConcept {
   id: string;
   group: ConceptGroup;
@@ -169,6 +189,8 @@ export interface TacticalConcept {
   sideToMove: 'w' | 'b';
   question: string;
   expectedMove: string;
+  acceptedMoves?: string[];
   explanation: string;
   validation?: ConceptValidation;
+  exercises?: TacticalConceptExercise[];
 }

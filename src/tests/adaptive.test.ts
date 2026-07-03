@@ -264,10 +264,46 @@ describe('lógica adaptativa', () => {
     expect(selectNextExercise([only], [], { seenExerciseIds: ['only'] })).toBeNull();
   });
 
-  it('excluye por completo ejercicios con dificultad superior al nivel permitido', () => {
-    const advanced = exercise({ id: 'advanced', difficulty: 2 });
+  it('permite un reto un nivel por encima aunque todavía no esté consolidado', () => {
+    const basic = exercise({ id: 'basic', difficulty: 1, fen: '4k3/8/8/8/8/8/4K3/8 w - - 0 1' });
+    const challenge = exercise({ id: 'challenge', difficulty: 2, fen: '4k3/8/8/8/8/8/5K2/8 w - - 0 1' });
+
+    expect(selectNextExercise([basic, challenge], [], { random: () => 0 })?.id).toBe('challenge');
+  });
+
+  it('usa el nivel objetivo y el modo retos para seleccionar ejercicios más exigentes', () => {
+    const basic = exercise({ id: 'basic', difficulty: 1, fen: '4k3/8/8/8/8/8/4K3/8 w - - 0 1' });
+    const advanced = exercise({ id: 'advanced', difficulty: 4, fen: '4k3/8/8/8/8/8/5K2/8 w - - 0 1' });
+
+    expect(
+      selectNextExercise([basic, advanced], [], {
+        preferences: { targetLevel: '1200-1400', challengeMode: 'retos' },
+        random: () => 0
+      })?.id
+    ).toBe('advanced');
+  });
+
+  it('mantiene el modo repaso dentro de la dificultad permitida', () => {
+    const advanced = exercise({ id: 'advanced', difficulty: 3 });
+
+    expect(
+      selectNextExercise([advanced], [], {
+        preferences: { targetLevel: '1200-1400', challengeMode: 'repaso' },
+        random: () => 0
+      })
+    ).toBeNull();
+  });
+
+  it('bloquea saltos demasiado altos sin perfil y retos tras fallos recientes', () => {
+    const advanced = exercise({ id: 'advanced', difficulty: 3 });
+    const challenge = exercise({ id: 'challenge', difficulty: 2 });
+    const failedAttempts = [
+      attempt({ id: 'fail-a', correct: false, date: '2026-06-28T10:00:00.000Z' }),
+      attempt({ id: 'fail-b', correct: false, date: '2026-06-29T10:00:00.000Z' })
+    ];
 
     expect(selectNextExercise([advanced], [], { random: () => 0 })).toBeNull();
+    expect(selectNextExercise([challenge], failedAttempts, { random: () => 0 })).toBeNull();
   });
 
   it('reconstruye progreso aprendido con tres repasos correctos y baja prioridad', () => {

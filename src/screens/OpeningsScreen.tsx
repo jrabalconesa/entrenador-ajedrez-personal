@@ -185,6 +185,36 @@ export default function OpeningsScreen() {
         title="Entrena el repertorio por bando"
         description="Aprende la idea de la apertura, reproduce la línea y encuentra las jugadas de tu color en el tablero."
       />
+      <div className="opening-mobile-priority">
+        <label>
+          Apertura
+          <select value={course.id} onChange={(event) => changeCourse(event.target.value)}>
+            {openingCourses.map((item) => (
+              <option key={item.id} value={item.id}>
+                {displaySide(item.side)}: {item.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Línea
+          <select value={line.id} onChange={(event) => changeLine(event.target.value)}>
+            {course.lines.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="opening-move-list compact">
+          {line.moves.map((move, index) => (
+            <span className={index < ply ? 'done' : index === ply ? 'current' : ''} key={`${move.san}-${index}-mobile`}>
+              {index % 2 === 0 ? `${Math.floor(index / 2) + 1}. ` : ''}
+              {move.san}
+            </span>
+          ))}
+        </div>
+      </div>
       <div className="openings-layout">
         <aside className="opening-sidebar">
           <label>

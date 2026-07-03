@@ -5,11 +5,13 @@ import {
   loadGamePreferences,
   loadGames,
   loadTrainingDayProgress,
+  loadTrainingPreferences,
   markTrainingBlockCompleted,
   saveAttempt,
   saveDiagnosticResult,
   saveGame,
   saveGamePreferences,
+  saveTrainingPreferences,
   updateGame
 } from '../storage/localStore';
 import type { DiagnosticResult, ExerciseAttempt, SavedGame } from '../types';
@@ -148,6 +150,14 @@ describe('almacenamiento local', () => {
     saveGamePreferences({ showMoveHints: false });
 
     expect(loadGamePreferences().showMoveHints).toBe(false);
+  });
+
+  it('recuerda el nivel objetivo y el modo de retos', () => {
+    expect(loadTrainingPreferences()).toEqual({ targetLevel: '1200-1400', challengeMode: 'equilibrado' });
+
+    saveTrainingPreferences({ targetLevel: '1400+', challengeMode: 'retos' });
+
+    expect(loadTrainingPreferences()).toEqual({ targetLevel: '1400+', challengeMode: 'retos' });
   });
 
   it('marca bloques diarios completados y reinicia la marca al cambiar de día', () => {

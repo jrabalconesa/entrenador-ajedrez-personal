@@ -4,11 +4,13 @@ import SectionHeader from '../components/SectionHeader';
 import { trainingBlocks } from '../data/trainingPlan';
 import { getCategoryStats } from '../logic/adaptive';
 import { formatCategoryLabel } from '../logic/labels';
-import type { ExerciseAttempt, TrainingBlockId } from '../types';
+import type { ChallengeMode, ExerciseAttempt, TargetLevel, TrainingBlockId, TrainingPreferences } from '../types';
 
 interface HomeScreenProps {
   attempts: ExerciseAttempt[];
   completedBlockIds: TrainingBlockId[];
+  trainingPreferences: TrainingPreferences;
+  onPreferencesChange: (preferences: TrainingPreferences) => void;
   onStart: (blockId?: TrainingBlockId) => void;
 }
 
@@ -19,7 +21,20 @@ const blockIcons = {
   'final-apertura': CirclePlay
 } as const;
 
-export default function HomeScreen({ attempts, completedBlockIds, onStart }: HomeScreenProps) {
+const targetLevelLabels: Record<TargetLevel, string> = {
+  '800-1000': '800-1000',
+  '1000-1200': '1000-1200',
+  '1200-1400': '1200-1400',
+  '1400+': '1400+'
+};
+
+const challengeModeLabels: Record<ChallengeMode, string> = {
+  repaso: 'Repaso',
+  equilibrado: 'Equilibrado',
+  retos: 'Retos'
+};
+
+export default function HomeScreen({ attempts, completedBlockIds, trainingPreferences, onPreferencesChange, onStart }: HomeScreenProps) {
   const [showGuidance, setShowGuidance] = useState(false);
   const stats = getCategoryStats(attempts);
   const weakTopic = stats.filter((stat) => stat.total >= 2).sort((a, b) => a.accuracy - b.accuracy)[0];
@@ -31,6 +46,20 @@ export default function HomeScreen({ attempts, completedBlockIds, onStart }: Hom
   const priorityTopic = weakTopic
     ? `Repasar ${formatCategoryLabel(weakTopic.category)}: ahora tienes un ${weakTopic.accuracy}% de acierto.`
     : 'Revisar Piezas indefensas antes de mover.';
+  const challengeSummary =
+    trainingPreferences.challengeMode === 'retos'
+      ? 'La sesión prioriza posiciones más exigentes y saltos de dificultad controlados.'
+      : trainingPreferences.challengeMode === 'repaso'
+        ? 'La sesión consolida errores recientes antes de subir dificultad.'
+        : 'La sesión mezcla consolidación con retos por encima del nivel dominado.';
+
+  const updateTargetLevel = (targetLevel: TargetLevel) => {
+    onPreferencesChange({ ...trainingPreferences, targetLevel });
+  };
+
+  const updateChallengeMode = (challengeMode: ChallengeMode) => {
+    onPreferencesChange({ ...trainingPreferences, challengeMode });
+  };
 
   return (
     <section>
@@ -63,6 +92,35 @@ export default function HomeScreen({ attempts, completedBlockIds, onStart }: Hom
           </button>
         </div>
         <aside className="coaching-panel guidance-panel">
+          <div className="training-preferences">
+            <div>
+              <span>Perfil</span>
+              <h2>Nivel y reto</h2>
+              <p>{challengeSummary}</p>
+            </div>
+            <div className="preference-grid">
+              <label>
+                Nivel objetivo
+                <select value={trainingPreferences.targetLevel} onChange={(event) => updateTargetLevel(event.target.value as TargetLevel)}>
+                  {Object.entries(targetLevelLabels).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Retos
+                <select value={trainingPreferences.challengeMode} onChange={(event) => updateChallengeMode(event.target.value as ChallengeMode)}>
+                  {Object.entries(challengeModeLabels).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          </div>
           <div className="guidance-summary">
             <div>
               <span>Orientación</span>

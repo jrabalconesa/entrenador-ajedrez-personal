@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { BookOpen, Brain, ChartNoAxesColumnIncreasing, ClipboardCheck, Dumbbell, Home, LibraryBig } from 'lucide-react';
 import { exercises } from './data/exercises';
 import { trainingBlocks } from './data/trainingPlan';
-import { loadAttempts, loadGames, loadTrainingDayProgress, markTrainingBlockCompleted } from './storage/localStore';
-import type { ExerciseAttempt, SavedGame, TrainingBlockId, TrainingDayProgress, TrainingSessionConfig } from './types';
+import { loadAttempts, loadGames, loadTrainingDayProgress, loadTrainingPreferences, markTrainingBlockCompleted, saveTrainingPreferences } from './storage/localStore';
+import type { ExerciseAttempt, SavedGame, TrainingBlockId, TrainingDayProgress, TrainingPreferences, TrainingSessionConfig } from './types';
 import HomeScreen from './screens/HomeScreen';
 import ExercisesScreen from './screens/ExercisesScreen';
 import GamesScreen from './screens/GamesScreen';
@@ -30,6 +30,7 @@ export default function App() {
   const [attempts, setAttempts] = useState<ExerciseAttempt[]>([]);
   const [games, setGames] = useState<SavedGame[]>([]);
   const [trainingDay, setTrainingDay] = useState<TrainingDayProgress>(() => loadTrainingDayProgress());
+  const [trainingPreferences, setTrainingPreferences] = useState<TrainingPreferences>(() => loadTrainingPreferences());
   const [trainingSession, setTrainingSession] = useState<TrainingSessionConfig | undefined>();
 
   const refreshData = () => {
@@ -45,9 +46,15 @@ export default function App() {
   const startTraining = (blockId?: TrainingBlockId) => {
     setTrainingSession({
       mode: blockId ? 'single' : 'full',
-      blockIds: blockId ? [blockId] : trainingBlocks.map((block) => block.id)
+      blockIds: blockId ? [blockId] : trainingBlocks.map((block) => block.id),
+      preferences: trainingPreferences
     });
     setScreen('ejercicios');
+  };
+
+  const updateTrainingPreferences = (preferences: TrainingPreferences) => {
+    setTrainingPreferences(preferences);
+    saveTrainingPreferences(preferences);
   };
 
   const completeTrainingBlock = (blockId: TrainingBlockId) => {
@@ -65,7 +72,15 @@ export default function App() {
   const accuracy = totalDone === 0 ? 0 : Math.round((correct / totalDone) * 100);
   const currentScreen = useMemo(() => {
     if (screen === 'inicio') {
-      return <HomeScreen attempts={attempts} completedBlockIds={trainingDay.completedBlockIds} onStart={startTraining} />;
+      return (
+        <HomeScreen
+          attempts={attempts}
+          completedBlockIds={trainingDay.completedBlockIds}
+          trainingPreferences={trainingPreferences}
+          onPreferencesChange={updateTrainingPreferences}
+          onStart={startTraining}
+        />
+      );
     }
     if (screen === 'ejercicios') {
       return (
@@ -73,6 +88,7 @@ export default function App() {
           exercises={exercises}
           attempts={attempts}
           session={trainingSession}
+          preferences={trainingPreferences}
           onAttemptSaved={refreshData}
           onBlockCompleted={completeTrainingBlock}
           onSessionFinished={finishTrainingSession}
@@ -99,7 +115,7 @@ export default function App() {
       return <GamesScreen games={games} onGamesChanged={refreshData} />;
     }
     return <ProgressScreen attempts={attempts} games={games} />;
-  }, [attempts, games, screen, trainingDay.completedBlockIds, trainingSession]);
+  }, [attempts, games, screen, trainingDay.completedBlockIds, trainingPreferences, trainingSession]);
 
   return (
     <div className="app-shell">
@@ -121,7 +137,8 @@ export default function App() {
                 onClick={() => setScreen(item.id)}
                 type="button"
               >
-                <Icon size={20} aria-hidden="true" />
+                {item.id === 'inicio' ? <img className="nav-app-mark" src={appIconUrl} alt="" aria-hidden="true" /> : null}
+                <Icon className={item.id === 'inicio' ? 'nav-home-icon' : undefined} size={20} aria-hidden="true" />
                 {item.label}
               </button>
             );

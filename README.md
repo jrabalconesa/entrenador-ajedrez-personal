@@ -157,7 +157,17 @@ Se revisó el enfoque pedagógico para mantener explicaciones breves, sin varian
 
 La sección `Mis partidas` permite guardar un PGN externo y lanzar `Analizar partida`. El análisis actual es local y no usa servidor externo: reconstruye la partida con `chess.js`, analiza sólo el color indicado cuando se guarda la partida como blancas o negras, y analiza ambos bandos si el color queda `sin indicar`.
 
-El análisis combina reglas pedagógicas del entrenador con una evaluación práctica offline basada en material, jaques, actividad, centro y piezas indefensas. No sustituye a Stockfish, pero sirve para detectar errores claros y convertirlos en repasos.
+El análisis usa Stockfish.js 18 localmente desde `public/stockfish/stockfish.js`. La build incluida es `lite single-threaded`, más ligera que la versión completa y compatible con navegador local sin cabeceras especiales. Si el navegador no puede cargar el motor, el programa no se rompe: cae automáticamente al evaluador interno basado en material, jaques, actividad, centro y piezas indefensas.
+
+Archivos incluidos:
+
+```text
+public/stockfish/stockfish.js
+public/stockfish/stockfish.wasm
+public/stockfish/Copying.txt
+```
+
+Al ejecutar `pnpm run build`, Vite copia esa carpeta a `dist/stockfish/`, de modo que el navegador local pueda cargar el motor sin servidor externo.
 
 Cada aviso automático puede guardar:
 
@@ -174,6 +184,6 @@ Reanalizar una partida reemplaza los avisos automáticos anteriores, pero conser
 
 ## Próximas mejoras previstas
 
-- Integrar Stockfish localmente.
-- Comparar el análisis offline actual con evaluación real de motor.
+- Añadir una pantalla de configuración del motor: profundidad, tiempo por jugada y estado de carga.
+- Comparar varias líneas candidatas del motor y no sólo la primera.
 - Ampliar ejercicios de finales y planes de apertura.

@@ -56,16 +56,24 @@ describe('táctica y estrategia', () => {
 
   it('cada ejercicio tiene FEN válido y jugada esperada legal en SAN', () => {
     tacticalConcepts.forEach((concept) => {
-      const fenValidation = validateFen(concept.fen);
-      expect(fenValidation.ok, `${concept.id}: ${fenValidation.error}`).toBe(true);
-
-      const game = new Chess(concept.fen);
-      expect(game.turn(), `${concept.id}: turno`).toBe(concept.sideToMove);
-      const played = game.move(concept.expectedMove, { strict: false });
-      expect(played.san, concept.id).toBe(concept.expectedMove);
       expect(concept.definition.length, `${concept.id}: definición`).toBeGreaterThan(40);
       expect(concept.pattern.length, `${concept.id}: patrón`).toBeGreaterThan(30);
       expect(concept.explanation.length, `${concept.id}: explicación`).toBeGreaterThan(40);
+      getConceptExercises(concept).forEach((exercise, index) => {
+        const label = `${concept.id}:${index + 1}`;
+        const fenValidation = validateFen(exercise.fen);
+        expect(fenValidation.ok, `${label}: ${fenValidation.error}`).toBe(true);
+
+        const game = new Chess(exercise.fen);
+        expect(game.turn(), `${label}: turno`).toBe(exercise.sideToMove);
+        const played = game.move(exercise.expectedMove, { strict: false });
+        expect(played.san, label).toBe(exercise.expectedMove);
+        exercise.acceptedMoves?.forEach((move) => {
+          const accepted = new Chess(exercise.fen).move(move, { strict: false });
+          expect(accepted.san, `${label}: variante`).toBe(move);
+        });
+        expect(exercise.explanation.length, `${label}: explicación`).toBeGreaterThan(40);
+      });
     });
   });
 
@@ -84,4 +92,27 @@ describe('táctica y estrategia', () => {
         if (concept.validation === 'promotion') expect(played.promotion, concept.id).toBe('q');
       });
   });
+
+  it('usa ejemplos distintos para las tres variantes de clavada', () => {
+    const pinConcepts = tacticalConcepts.filter((concept) => concept.id.startsWith('clavada'));
+    const fens = pinConcepts.map((concept) => concept.fen);
+
+    expect(new Set(fens).size).toBe(pinConcepts.length);
+    pinConcepts.forEach((concept) => {
+      expect(concept.exercises?.length, concept.id).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  it('zugzwang acepta la alternativa simétrica Ke3', () => {
+    const concept = tacticalConcepts.find((item) => item.id === 'zugzwang');
+    expect(concept?.acceptedMoves).toContain('Ke3');
+
+    const game = new Chess(concept?.fen);
+    const move = game.move('Ke3', { strict: false });
+    expect(move.san).toBe('Ke3');
+  });
 });
+
+function getConceptExercises(concept: (typeof tacticalConcepts)[number]) {
+  return concept.exercises?.length ? concept.exercises : [concept];
+}

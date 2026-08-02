@@ -150,6 +150,10 @@ export interface OpeningMove {
 export interface OpeningLine {
   id: string;
   name: string;
+  stage?: string;
+  summary?: string;
+  whitePlan?: string[];
+  blackPlan?: string[];
   moves: OpeningMove[];
   keyIdeas: string[];
 }

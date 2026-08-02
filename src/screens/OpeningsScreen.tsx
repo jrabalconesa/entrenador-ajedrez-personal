@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Chess, type Square } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
-import { ArrowRight, Check, HelpCircle, Lightbulb, RotateCcw, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, HelpCircle, Lightbulb, RotateCcw, SkipBack, SkipForward, X } from 'lucide-react';
 import SectionHeader from '../components/SectionHeader';
 import { openingCourses } from '../data/openings';
 import { boardMoveToSan, kingInCheckSquare, legalDestinations } from '../logic/boardMove';
@@ -78,6 +78,21 @@ export default function OpeningsScreen() {
 
   const startPractice = (color: TrainingColor) => {
     resetLine('practice', color);
+  };
+
+  const goToReviewPly = (nextPly: number) => {
+    if (!line || mode !== 'review') return;
+    const boundedPly = Math.max(0, Math.min(nextPly, line.moves.length));
+    const previousMove = boundedPly > 0 ? playSanFromCurrent(line, boundedPly - 1, line.moves[boundedPly - 1].san) : null;
+    setPly(boundedPly);
+    setLastMove(previousMove ? { from: previousMove.from, to: previousMove.to } : null);
+    setFeedback(
+      boundedPly > 0
+        ? { correct: true, text: line.moves[boundedPly - 1].explanation }
+        : null
+    );
+    setSelectedSquare(null);
+    setShowHint(false);
   };
 
   const submitMove = (moveText: string) => {
@@ -282,6 +297,22 @@ export default function OpeningsScreen() {
               Practicar Negras
             </button>
           </div>
+          {mode === 'review' ? (
+            <div className="opening-review-controls" aria-label="Navegación por la línea">
+              <button onClick={() => goToReviewPly(0)} disabled={ply === 0} type="button" aria-label="Ir al inicio">
+                <SkipBack size={18} />
+              </button>
+              <button onClick={() => goToReviewPly(ply - 1)} disabled={ply === 0} type="button">
+                <ArrowLeft size={18} /> Anterior
+              </button>
+              <button onClick={() => goToReviewPly(ply + 1)} disabled={completed} type="button">
+                Siguiente <ArrowRight size={18} />
+              </button>
+              <button onClick={() => goToReviewPly(line.moves.length)} disabled={completed} type="button" aria-label="Ir al final">
+                <SkipForward size={18} />
+              </button>
+            </div>
+          ) : null}
           <div className="opening-progress">
             <span>
               Jugada {Math.min(ply + 1, line.moves.length)}/{line.moves.length}
@@ -289,11 +320,24 @@ export default function OpeningsScreen() {
             <strong>{completed ? 'Línea completada' : `${moveNumber}${game.turn() === 'b' ? '...' : '.'} ${currentMove?.san}`}</strong>
           </div>
           <div className="opening-ideas">
-            <strong>Ideas clave</strong>
+            <strong>{line.stage ? `${line.stage} · Ideas clave` : 'Ideas clave'}</strong>
+            {line.summary ? <p>{line.summary}</p> : null}
             {line.keyIdeas.map((idea) => (
               <span key={idea}>{idea}</span>
             ))}
           </div>
+          {line.whitePlan?.length || line.blackPlan?.length ? (
+            <div className="opening-side-plans">
+              <div>
+                <strong>Plan de Blancas</strong>
+                {line.whitePlan?.map((item) => <span key={item}>{item}</span>)}
+              </div>
+              <div>
+                <strong>Plan de Negras</strong>
+                {line.blackPlan?.map((item) => <span key={item}>{item}</span>)}
+              </div>
+            </div>
+          ) : null}
           {completed ? (
             <div className="feedback correct">
               <strong>

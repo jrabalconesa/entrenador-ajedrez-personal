@@ -47,4 +47,20 @@ describe('entrenador de aperturas', () => {
       });
     });
   });
+
+  it('estructura la Italiana como un mapa de decisiones con planes para ambos bandos', () => {
+    const italian = openingCourses.find((course) => course.id === 'italian');
+
+    expect(italian?.lines.map((line) => line.id)).toEqual([
+      'italian-c3-d4',
+      'italian-pianissimo',
+      'italian-two-knights'
+    ]);
+    italian?.lines.forEach((line) => {
+      expect(line.stage).toBeTruthy();
+      expect(line.summary?.length).toBeGreaterThan(40);
+      expect(line.whitePlan).toHaveLength(3);
+      expect(line.blackPlan).toHaveLength(3);
+    });
+  });
 });

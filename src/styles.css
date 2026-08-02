@@ -788,6 +788,63 @@ textarea {
   padding: 10px 12px;
 }
 
+.opening-review-controls {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr auto;
+  gap: 8px;
+}
+
+.opening-review-controls button {
+  min-height: 40px;
+  border: 1px solid #d5ded7;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #174c43;
+  padding: 0 10px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.opening-review-controls button:disabled {
+  opacity: 0.42;
+  cursor: default;
+}
+
+.opening-ideas p {
+  margin: 0;
+  color: #526073;
+  line-height: 1.45;
+}
+
+.opening-side-plans {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.opening-side-plans div {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  border: 1px solid #e1e7e2;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.opening-side-plans strong {
+  color: #174c43;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.opening-side-plans span {
+  color: #526073;
+  font-size: 13px;
+  line-height: 1.35;
+}
 .opening-progress {
   display: grid;
   gap: 4px;

@@ -17,7 +17,85 @@ export type CreateExerciseAttemptOptions = {
 };
 
 const REVIEW_OFFSETS = [1, 3, 7] as const;
+export type TacticalMotifStats = {
+  motif: string;
+  label: string;
+  total: number;
+  correct: number;
+  mistakes: number;
+  accuracy: number;
+};
 
+const MOTIF_LABELS: Record<string, string> = {
+  tenedor: 'Tenedores',
+  clavada: 'Clavadas',
+  desviacion: 'Desviaciones',
+  atraccion: 'Atracción',
+  'ataque-descubierto': 'Ataques descubiertos',
+  sacrificio: 'Sacrificios',
+  'mate-forzado': 'Mates forzados',
+  'calculo-largo': 'Cálculo largo',
+  'pieza-indefensa': 'Piezas indefensas',
+  'amenaza-rival': 'Amenazas del rival',
+  'jugada-intermedia': 'Jugadas intermedias',
+  'eliminacion-defensor': 'Eliminación del defensor'
+};
+
+const MOTIF_ALIASES: Record<string, keyof typeof MOTIF_LABELS> = {
+  tenedor: 'tenedor',
+  clavada: 'clavada',
+  desviación: 'desviacion',
+  atracción: 'atraccion',
+  'ataque descubierto': 'ataque-descubierto',
+  sacrificio: 'sacrificio',
+  'sacrificio de dama': 'sacrificio',
+  'sacrificio de torre': 'sacrificio',
+  mate: 'mate-forzado',
+  'mate forzado': 'mate-forzado',
+  'cálculo largo': 'calculo-largo',
+  'pieza indefensa': 'pieza-indefensa',
+  'amenaza rival': 'amenaza-rival',
+  'jugada intermedia': 'jugada-intermedia',
+  'jaque intermedio': 'jugada-intermedia',
+  'eliminación del defensor': 'eliminacion-defensor'
+};
+
+export function getExerciseMotifs(exercise: Exercise): string[] {
+  const motifs = (exercise.tags ?? [])
+    .map((tag) => MOTIF_ALIASES[tag.toLocaleLowerCase('es-ES')])
+    .filter((motif): motif is keyof typeof MOTIF_LABELS => Boolean(motif));
+  return [...new Set(motifs)];
+}
+
+export function getTacticalMotifStats(exercises: Exercise[], attempts: ExerciseAttempt[]): TacticalMotifStats[] {
+  const exercisesById = new Map(exercises.map((exercise) => [exercise.id, exercise]));
+  const grouped = new Map<string, { total: number; correct: number }>();
+
+  attempts
+    .filter((attempt) => attempt.attemptKind !== 'diagnostic')
+    .forEach((attempt) => {
+      const exercise = exercisesById.get(attempt.exerciseId);
+      if (!exercise) return;
+      getExerciseMotifs(exercise).forEach((motif) => {
+        const current = grouped.get(motif) ?? { total: 0, correct: 0 };
+        grouped.set(motif, {
+          total: current.total + 1,
+          correct: current.correct + (attempt.correct ? 1 : 0)
+        });
+      });
+    });
+
+  return [...grouped.entries()]
+    .map(([motif, values]) => ({
+      motif,
+      label: MOTIF_LABELS[motif],
+      total: values.total,
+      correct: values.correct,
+      mistakes: values.total - values.correct,
+      accuracy: Math.round((values.correct / values.total) * 100)
+    }))
+    .sort((a, b) => b.mistakes - a.mistakes || a.accuracy - b.accuracy || a.label.localeCompare(b.label));
+}
 export function getCategoryStats(attempts: ExerciseAttempt[]): CategoryStats[] {
   const grouped = new Map<ExerciseCategory, { total: number; correct: number }>();
 
@@ -271,6 +349,7 @@ export function selectNextExercise(
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(-2)
     .some((attempt) => !attempt.correct);
+  const motifStats = getTacticalMotifStats(exercises, attempts);
   const eligible = exercises.filter(
     (exercise) => {
       if (seenExerciseIds.has(exercise.id) || shownFens.has(normalizeFenForSession(exercise.fen))) return false;
@@ -283,12 +362,15 @@ export function selectNextExercise(
   if (eligible.length === 0) return null;
 
   const pool = eligible
-    .map((exercise) => ({ exercise, weight: Math.max(1, getExerciseWeight(exercise, attempts, today) + getPreferenceWeight(exercise, preferences)) }))
+    .map((exercise) => ({
+      exercise,
+      weight: Math.max(1, getExerciseWeight(exercise, attempts, today) + getPreferenceWeight(exercise, preferences) + getMotifWeight(exercise, motifStats))
+    }))
     .sort((a, b) => {
       const difference = b.weight - a.weight;
       return difference !== 0 ? difference : a.exercise.id.localeCompare(b.exercise.id);
     })
-    .slice(0, 12);
+    .slice(0, Math.min(24, eligible.length));
 
   const total = pool.reduce((sum, item) => sum + item.weight, 0);
   let target = random() * total;
@@ -322,6 +404,15 @@ function getChallengeCeiling(allowedDifficulty: number, preferences: TrainingPre
   return Math.min(5, Math.max(allowedDifficulty + modeBonus, targetFloor + targetBonus));
 }
 
+function getMotifWeight(exercise: Exercise, stats: TacticalMotifStats[]): number {
+  const statsByMotif = new Map(stats.map((stat) => [stat.motif, stat]));
+  return getExerciseMotifs(exercise).reduce((weight, motif) => {
+    const stat = statsByMotif.get(motif);
+    if (!stat || stat.mistakes === 0 || stat.accuracy >= 80) return weight;
+    const errorRate = stat.mistakes / stat.total;
+    return weight + Math.min(18, Math.round(stat.mistakes * 4 + errorRate * 8));
+  }, 0);
+}
 function getPreferenceWeight(exercise: Exercise, preferences: TrainingPreferences | undefined): number {
   if (!preferences) return 0;
 

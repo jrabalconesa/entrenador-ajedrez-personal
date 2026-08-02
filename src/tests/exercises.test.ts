@@ -168,14 +168,24 @@ describe('ejercicios de ajedrez', () => {
     });
   });
 
+  it('incluye una colección avanzada y trazable de posiciones reales', () => {
+    const advanced = exercises.filter((exercise) => exercise.tags?.includes('Lichess'));
+
+    expect(advanced).toHaveLength(14);
+    expect(advanced.every((exercise) => exercise.difficulty >= 4)).toBe(true);
+    expect(advanced.every((exercise) => exercise.tags?.includes('Lichess'))).toBe(true);
+    expect(new Set(advanced.map((exercise) => exercise.tags?.[1])).size).toBe(advanced.length);
+  });
   it('incluye la ruta de aperturas solicitada y ejercicios asociados', () => {
     const requestedOpenings = [
       'Sistema Londres',
       'Apertura Italiana',
       'Gambito de Dama',
+      'Apertura Inglesa',
       'Apertura Española',
       'Defensa Caro-Kann',
       'Defensa Francesa',
+      'Defensa Escandinava',
       'Defensa India de Rey',
       'Defensa Siciliana'
     ];

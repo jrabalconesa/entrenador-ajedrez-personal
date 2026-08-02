@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { Flame, Target, TrendingUp } from 'lucide-react';
 import ProgressBar from '../components/ProgressBar';
 import SectionHeader from '../components/SectionHeader';
-import { categories } from '../data/exercises';
-import { getCategoryStats } from '../logic/adaptive';
+import { categories, exercises } from '../data/exercises';
+import { getCategoryStats, getTacticalMotifStats } from '../logic/adaptive';
+import { getOpeningWeakMotifs } from '../logic/openingLearning';
+import { loadOpeningAttempts } from '../storage/localStore';
 import { formatCategoryLabel } from '../logic/labels';
 import type { ExerciseAttempt, SavedGame } from '../types';
 
@@ -19,6 +21,9 @@ export default function ProgressScreen({ attempts, games }: ProgressScreenProps)
   const correct = attempts.filter((attempt) => attempt.correct).length;
   const accuracy = total === 0 ? 0 : Math.round((correct / total) * 100);
   const weakCategories = stats.filter((stat) => stat.total > 0 && stat.accuracy < 70).map((stat) => formatCategoryLabel(stat.category));
+  const weakMotifs = getTacticalMotifStats(exercises, attempts).filter((stat) => stat.mistakes > 0 && stat.accuracy < 80).slice(0, 3);
+  const openingAttempts = loadOpeningAttempts();
+  const weakOpeningMotifs = getOpeningWeakMotifs(openingAttempts).slice(0, 3);
   const repeatedErrors = games.flatMap((game) => game.errors).reduce<Record<string, number>>((acc, error) => {
     acc[error.category] = (acc[error.category] ?? 0) + 1;
     return acc;
@@ -81,8 +86,16 @@ export default function ProgressScreen({ attempts, games }: ProgressScreenProps)
           <p>{topError ? `${formatCategoryLabel(topError[0])} aparece ${topError[1]} vez${topError[1] === 1 ? '' : 'es'} en tus partidas.` : 'Aún no has marcado errores manuales en tus partidas.'}</p>
           <h3>Temas que toca repasar</h3>
           <p>{weakCategories.length > 0 ? weakCategories.join(', ') : 'Mantén repasos espaciados de Piezas colgadas y Amenazas del rival.'}</p>
-          <h3>Tema prioritario</h3>
-          <p>{weakCategories[0] ?? 'Revisar piezas indefensas antes de mover.'}</p>
+          <h3>Patrones tácticos detectados</h3>
+          <p>
+            {weakMotifs.length > 0
+              ? weakMotifs.map((motif) => `${motif.label}: ${motif.mistakes} fallo${motif.mistakes === 1 ? '' : 's'}`).join(' · ')
+              : 'Todavía no hay suficientes fallos etiquetados para detectar un patrón.'}
+          </p>
+          <h3>Aprendizaje de aperturas</h3>
+          <p>{openingAttempts.length} actividad{openingAttempts.length === 1 ? '' : 'es'} registrada{openingAttempts.length === 1 ? '' : 's'}.</p>
+          <p>{weakOpeningMotifs.length ? `Conviene reforzar: ${weakOpeningMotifs.map((item) => item.motif).join(', ')}.` : 'Completa mini ejercicios para detectar qué planes necesitan repaso.'}</p>          <h3>Tema prioritario</h3>
+          <p>{weakMotifs[0]?.label ?? weakCategories[0] ?? 'Revisar piezas indefensas antes de mover.'}</p>
         </aside>
       </div>
     </section>

@@ -4,17 +4,19 @@ import {
   loadDiagnosticResult,
   loadGamePreferences,
   loadGames,
+  loadOpeningAttempts,
   loadTrainingDayProgress,
   loadTrainingPreferences,
   markTrainingBlockCompleted,
   saveAttempt,
   saveDiagnosticResult,
   saveGame,
+  saveOpeningAttempt,
   saveGamePreferences,
   saveTrainingPreferences,
   updateGame
 } from '../storage/localStore';
-import type { DiagnosticResult, ExerciseAttempt, SavedGame } from '../types';
+import type { DiagnosticResult, ExerciseAttempt, OpeningAttempt, SavedGame } from '../types';
 
 const memory = new Map<string, string>();
 
@@ -144,6 +146,22 @@ describe('almacenamiento local', () => {
     expect(loadGames()[0].errors[0].practiceSuccesses).toBe(1);
   });
 
+  it('guarda y recupera el progreso específico de aperturas', () => {
+    const openingAttempt: OpeningAttempt = {
+      id: 'opening-1', courseId: 'italian', activity: 'transition', correct: false,
+      mistakes: 1, motifs: ['ruptura central'], date: '2026-08-02T10:00:00.000Z'
+    };
+
+    saveOpeningAttempt(openingAttempt);
+    expect(loadOpeningAttempts()).toEqual([openingAttempt]);
+  });
+
+  it('respalda el progreso de aperturas incompatible antes de reiniciarlo', () => {
+    memory.set('epa_opening_attempts_v1', JSON.stringify([{ id: 'broken' }]));
+
+    expect(loadOpeningAttempts()).toEqual([]);
+    expect([...memory.keys()].some((key) => key.startsWith('epa_opening_attempts_v1_backup_'))).toBe(true);
+  });
   it('recuerda si las pistas de jugadas están activadas', () => {
     expect(loadGamePreferences().showMoveHints).toBe(true);
 

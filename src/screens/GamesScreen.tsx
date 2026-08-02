@@ -4,6 +4,7 @@ import { Chessboard, type Arrow } from 'react-chessboard';
 import { FileUp, RotateCcw, Save, Undo2 } from 'lucide-react';
 import SectionHeader from '../components/SectionHeader';
 import { playPositionPresets } from '../data/playPositions';
+import { openingCourses } from '../data/openings';
 import { kingInCheckSquare } from '../logic/boardMove';
 import { boardNotationOptions } from '../logic/boardStyle';
 import { analyzeSavedGameWithStockfish, mergeAutomaticAnalysis, recordGameErrorPractice } from '../logic/gameAnalysis';
@@ -14,6 +15,7 @@ import { buildMoveHints, moveHintColor } from '../logic/moveHints';
 import { loadGamePreferences, saveGame, saveGamePreferences, updateGame } from '../storage/localStore';
 import type { GameError, SavedGame } from '../types';
 import { validatePgn } from '../logic/pgn';
+import { recognizeOpeningFromPgn } from '../logic/openingLearning';
 
 interface GamesScreenProps {
   games: SavedGame[];
@@ -1163,6 +1165,7 @@ function GameHistoryModal({
           {visibleGames.length === 0 ? <p className="empty-state">No hay partidas con esos filtros.</p> : null}
           {visibleGames.map((game) => {
             const info = getSavedGameInfo(game);
+            const opening = recognizeOpeningFromPgn(game.pgn, openingCourses);
             const firstPracticeError = game.errors.find((error) => error.fenBefore);
             const isAnalyzing = analyzingGameIds.has(game.id);
             return (
@@ -1174,7 +1177,9 @@ function GameHistoryModal({
                 <div className="history-row-summary">
                   <span>{game.errors.length} aviso{game.errors.length === 1 ? '' : 's'}</span>
                   <span>{game.notes ? 'Con resumen' : 'Sin resumen'}</span>
+                  {opening ? <span>{opening.courseName} · {opening.matchedPlies} medias jugadas reconocidas</span> : <span>Apertura fuera del repertorio</span>}
                 </div>
+                {opening ? <p className="compact-note">{opening.firstDeparture ? `Primera desviación: ${opening.firstDeparture}. ` : ''}Plan recomendado: {opening.suggestedPlan}</p> : null}
                 <div className="history-row-actions">
                   <button className="primary-button compact-action" onClick={() => onReviewGame(game)} type="button">
                     Revisar partida

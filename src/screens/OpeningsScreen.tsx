@@ -1,11 +1,13 @@
-import { useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Chess, type Square } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
 import { ArrowLeft, ArrowRight, Check, HelpCircle, Lightbulb, RotateCcw, SkipBack, SkipForward, X } from 'lucide-react';
 import SectionHeader from '../components/SectionHeader';
+import OpeningLearningPanel from '../components/OpeningLearningPanel';
 import { openingCourses } from '../data/openings';
 import { boardMoveToSan, kingInCheckSquare, legalDestinations } from '../logic/boardMove';
 import { boardNotationOptions } from '../logic/boardStyle';
+import { saveOpeningAttempt } from '../storage/localStore';
 import type { OpeningLine } from '../types';
 
 type Feedback = {
@@ -31,6 +33,7 @@ export default function OpeningsScreen() {
   const [showHint, setShowHint] = useState(false);
   const [mistakes, setMistakes] = useState(0);
   const pieceClickSquareRef = useRef<string | null>(null);
+  const recordedCompletionRef = useRef('');
 
   const game = useMemo(() => buildPosition(line, ply), [line, ply]);
   const currentMove = line?.moves[ply] ?? null;
@@ -40,6 +43,16 @@ export default function OpeningsScreen() {
   const isUserTurn = Boolean(mode === 'practice' && currentMove && game.turn() === trainingColor);
   const completed = Boolean(line && ply >= line.moves.length);
   const moveNumber = Math.floor(ply / 2) + 1;
+  useEffect(() => {
+    if (!completed || mode !== 'practice' || !line) return;
+    const key = `${course.id}-${line.id}-${practiceColor}-${mistakes}`;
+    if (recordedCompletionRef.current === key) return;
+    recordedCompletionRef.current = key;
+    saveOpeningAttempt({
+      id: crypto.randomUUID(), courseId: course.id, activity: 'line', correct: mistakes === 0,
+      mistakes, motifs: mistakes === 0 ? [] : ['memoria de línea'], date: new Date().toISOString()
+    });
+  }, [completed, course.id, line, mistakes, mode, practiceColor]);
 
   const changeCourse = (nextCourseId: string) => {
     const nextCourse = openingCourses.find((item) => item.id === nextCourseId) ?? openingCourses[0];
@@ -97,16 +110,17 @@ export default function OpeningsScreen() {
 
   const submitMove = (moveText: string) => {
     if (!line || !currentMove || !isUserTurn) return;
-    const normalized = moveText.trim();
+    const normalized = toInternalSan(moveText.trim());
     if (!normalized) return;
 
     const trial = new Chess(game.fen());
     try {
       const move = trial.move(normalized, { strict: false });
-      if (sameMove(move.san, currentMove.san)) {
-        setPly((value) => value + 1);
+      const accepted = findAcceptedOpeningMove(currentMove, move.san);
+      if (accepted) {
+        setPly(sameMove(accepted.san, currentMove.san) ? ply + 1 : line.moves.length);
         setLastMove({ from: move.from, to: move.to });
-        setFeedback({ correct: true, text: currentMove.explanation });
+        setFeedback({ correct: true, text: accepted.explanation });
         setManualMove('');
         setSelectedSquare(null);
         setShowHint(false);
@@ -117,7 +131,7 @@ export default function OpeningsScreen() {
     }
 
     setMistakes((value) => value + 1);
-    setFeedback({ correct: false, text: `La jugada de la línea es ${currentMove.san}. ${currentMove.explanation}` });
+    setFeedback({ correct: false, text: `La jugada de la línea es ${displaySan(currentMove.san)}. ${currentMove.explanation}` });
   };
 
   const submitBoardMove = (from: string, to: string) => {
@@ -129,10 +143,11 @@ export default function OpeningsScreen() {
       return false;
     }
 
-    if (sameMove(result.san, currentMove.san)) {
-      setPly((value) => value + 1);
+    const accepted = findAcceptedOpeningMove(currentMove, result.san);
+    if (accepted) {
+      setPly(sameMove(accepted.san, currentMove.san) ? ply + 1 : line.moves.length);
       setLastMove({ from: result.from, to: result.to });
-      setFeedback({ correct: true, text: currentMove.explanation });
+      setFeedback({ correct: true, text: accepted.explanation });
       setManualMove('');
       setSelectedSquare(null);
       setShowHint(false);
@@ -140,7 +155,7 @@ export default function OpeningsScreen() {
     }
 
     setMistakes((value) => value + 1);
-    setFeedback({ correct: false, text: `Esa jugada es legal, pero aquí queremos ${currentMove.san}. ${currentMove.explanation}` });
+    setFeedback({ correct: false, text: `Esa jugada es legal, pero aquí queremos ${displaySan(currentMove.san)}. ${currentMove.explanation}` });
     return false;
   };
 
@@ -223,13 +238,14 @@ export default function OpeningsScreen() {
         </label>
         <div className="opening-move-list compact">
           {line.moves.map((move, index) => (
-            <span className={index < ply ? 'done' : index === ply ? 'current' : ''} key={`${move.san}-${index}-mobile`}>
+            <span className={index < ply ? 'done' : index === ply ? 'current' : ''} key={`${displaySan(move.san)}-${index}-mobile`}>
               {index % 2 === 0 ? `${Math.floor(index / 2) + 1}. ` : ''}
-              {move.san}
+              {displaySan(move.san)}
             </span>
           ))}
         </div>
       </div>
+      <OpeningLearningPanel course={course} onCourseChange={changeCourse} />
       <div className="openings-layout">
         <aside className="opening-sidebar">
           <label>
@@ -317,7 +333,7 @@ export default function OpeningsScreen() {
             <span>
               Jugada {Math.min(ply + 1, line.moves.length)}/{line.moves.length}
             </span>
-            <strong>{completed ? 'Línea completada' : `${moveNumber}${game.turn() === 'b' ? '...' : '.'} ${currentMove?.san}`}</strong>
+            <strong>{completed ? 'Línea completada' : `${moveNumber}${game.turn() === 'b' ? '...' : '.'} ${currentMove ? displaySan(currentMove.san) : ''}`}</strong>
           </div>
           <div className="opening-ideas">
             <strong>{line.stage ? `${line.stage} · Ideas clave` : 'Ideas clave'}</strong>
@@ -383,7 +399,7 @@ export default function OpeningsScreen() {
               >
                 <label htmlFor="opening-move">Escribir jugada</label>
                 <div>
-                  <input id="opening-move" value={manualMove} onChange={(event) => setManualMove(event.target.value)} placeholder="Ej. Nf3, c5 u O-O" />
+                  <input id="opening-move" value={manualMove} onChange={(event) => setManualMove(event.target.value)} placeholder="Ej. Cf3, c5 u O-O" />
                   <button className="secondary-button" type="submit" disabled={!manualMove.trim()}>
                     <Check size={18} />
                     Comprobar
@@ -399,7 +415,7 @@ export default function OpeningsScreen() {
                   className="ghost-button"
                   onClick={() => {
                     setMistakes((value) => value + 1);
-                    advanceExpectedMove(`La jugada era ${currentMove?.san}. ${currentMove?.explanation}`);
+                    advanceExpectedMove(`La jugada era ${currentMove ? displaySan(currentMove.san) : ''}. ${currentMove?.explanation}`);
                   }}
                   type="button"
                 >
@@ -436,9 +452,9 @@ export default function OpeningsScreen() {
           ) : null}
           <div className="opening-move-list">
             {line.moves.map((move, index) => (
-              <span className={index < ply ? 'done' : index === ply ? 'current' : ''} key={`${move.san}-${index}`}>
+              <span className={index < ply ? 'done' : index === ply ? 'current' : ''} key={`${displaySan(move.san)}-${index}`}>
                 {index % 2 === 0 ? `${Math.floor(index / 2) + 1}. ` : ''}
-                {move.san}
+                {displaySan(move.san)}
               </span>
             ))}
           </div>
@@ -460,10 +476,24 @@ function playSanFromCurrent(line: OpeningLine, ply: number, san: string) {
   return game.move(san, { strict: false });
 }
 
+function findAcceptedOpeningMove(move: OpeningLine['moves'][number], playedSan: string) {
+  if (sameMove(playedSan, move.san)) return { san: move.san, explanation: move.explanation };
+  return move.alternatives?.find((alternative) => sameMove(playedSan, alternative.san)) ?? null;
+}
+
 function sameMove(left: string, right: string): boolean {
   return left.replace(/[+#x=\s]/g, '').toLowerCase() === right.replace(/[+#x=\s]/g, '').toLowerCase();
 }
 
+function displaySan(san: string): string {
+  const pieces: Record<string, string> = { K: 'R', Q: 'D', R: 'T', B: 'A', N: 'C' };
+  return san.replace(/^([KQRBN])/, (piece) => pieces[piece]);
+}
+
+function toInternalSan(san: string): string {
+  const pieces: Record<string, string> = { R: 'K', D: 'Q', T: 'R', A: 'B', C: 'N' };
+  return san.replace(/^([RDTAC])/, (piece) => pieces[piece]);
+}
 function displaySide(side: 'blancas' | 'negras'): string {
   return side === 'blancas' ? 'Blancas' : 'Negras';
 }

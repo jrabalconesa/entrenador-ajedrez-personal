@@ -1,4 +1,4 @@
-import type { ChallengeMode, DiagnosticResult, ExerciseAttempt, SavedGame, TargetLevel, TrainingDayProgress, TrainingBlockId, TrainingPreferences } from '../types';
+import type { ChallengeMode, DiagnosticResult, ExerciseAttempt, OpeningAttempt, SavedGame, TargetLevel, TrainingDayProgress, TrainingBlockId, TrainingPreferences } from '../types';
 
 const ATTEMPTS_KEY = 'epa_attempts_v2';
 const LEGACY_ATTEMPTS_KEY = 'epa_attempts_v1';
@@ -7,6 +7,7 @@ const DIAGNOSTIC_KEY = 'epa_diagnostic_v1';
 const TRAINING_DAY_KEY = 'epa_training_day_v1';
 const GAME_PREFERENCES_KEY = 'epa_game_preferences_v1';
 const TRAINING_PREFERENCES_KEY = 'epa_training_preferences_v1';
+const OPENING_ATTEMPTS_KEY = 'epa_opening_attempts_v1';
 
 export type GamePreferences = {
   showMoveHints: boolean;
@@ -125,6 +126,34 @@ function backupAndReset(key: string, raw: string) {
   localStorage.removeItem(key);
 }
 
+export function loadOpeningAttempts(): OpeningAttempt[] {
+  const raw = localStorage.getItem(OPENING_ATTEMPTS_KEY);
+  if (!raw) return [];
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed) || !parsed.every(isOpeningAttemptLike)) {
+      backupAndReset(OPENING_ATTEMPTS_KEY, raw);
+      return [];
+    }
+    return parsed;
+  } catch {
+    backupAndReset(OPENING_ATTEMPTS_KEY, raw);
+    return [];
+  }
+}
+
+export function saveOpeningAttempt(attempt: OpeningAttempt) {
+  writeJson(OPENING_ATTEMPTS_KEY, [attempt, ...loadOpeningAttempts()]);
+}
+
+function isOpeningAttemptLike(value: unknown): value is OpeningAttempt {
+  if (!value || typeof value !== 'object') return false;
+  const attempt = value as Partial<OpeningAttempt>;
+  return typeof attempt.id === 'string' && typeof attempt.courseId === 'string' &&
+    (attempt.activity === 'line' || attempt.activity === 'quiz' || attempt.activity === 'transition' || attempt.activity === 'model') &&
+    typeof attempt.correct === 'boolean' && typeof attempt.mistakes === 'number' &&
+    Array.isArray(attempt.motifs) && attempt.motifs.every((motif) => typeof motif === 'string') && typeof attempt.date === 'string';
+}
 export function loadGames(): SavedGame[] {
   const raw = localStorage.getItem(GAMES_KEY);
   if (!raw) return [];

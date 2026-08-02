@@ -1,6 +1,7 @@
 import type { OpeningCourse } from '../types';
+import { additionalOpeningCourses } from './additionalOpeningCourses';
 
-export const openingCourses: OpeningCourse[] = [
+const coreOpeningCourses: OpeningCourse[] = [
   {
     id: 'london',
     name: 'Sistema Londres',
@@ -55,7 +56,7 @@ export const openingCourses: OpeningCourse[] = [
           { san: 'Nf6', explanation: 'Las negras desarrollan con una amenaza directa sobre el peón blanco de e4.' },
           { san: 'c3', explanation: 'Este peón sostiene d4 y construye la plataforma para ocupar todo el centro.' },
           { san: 'O-O', explanation: 'Las negras aseguran su rey antes de responder a la ruptura central preparada.' },
-          { san: 'd4', explanation: 'La ruptura temática cuestiona e5 y abre líneas para transformar desarrollo en iniciativa.' },
+          { san: 'd4', explanation: 'La ruptura temática cuestiona e5 y abre líneas para transformar desarrollo en iniciativa.', alternatives: [{ san: 'd3', explanation: 'd3 también es sana: cambia a un Pianissimo de maniobras y prepara d4 con más calma.' }] },
           { san: 'exd4', explanation: 'Las negras eliminan la tensión y obligan a las blancas a reconstruir su centro.' },
           { san: 'cxd4', explanation: 'La recaptura crea un centro activo y abre la columna c para una futura torre.' },
           { san: 'Bb6', explanation: 'El alfil conserva la diagonal a7-g1 y evita quedar expuesto a un avance central.' }
@@ -262,7 +263,7 @@ export const openingCourses: OpeningCourse[] = [
           { san: 'e4', explanation: 'Las blancas ocupan el centro y preparan desarrollo rápido.' },
           { san: 'c5', explanation: 'La idea siciliana: atacar el centro desde un lado.' },
           { san: 'Nf3', explanation: 'Las blancas desarrollan y preparan d4.' },
-          { san: 'd6', explanation: 'Controlas e5 y preparas ...Nf6.' },
+          { san: 'd6', explanation: 'Controlas e5 y preparas ...Nf6.', alternatives: [{ san: 'Nc6', explanation: '...Cc6 también desarrolla y conduce a otra Siciliana abierta válida.' }] },
           { san: 'd4', explanation: 'Las blancas abren el centro para transformar la partida en Siciliana abierta.' },
           { san: 'cxd4', explanation: 'Cambias el peón lateral por un peón central.' },
           { san: 'Nxd4', explanation: 'Las blancas centralizan el caballo.' },
@@ -274,3 +275,11 @@ export const openingCourses: OpeningCourse[] = [
     ]
   }
 ];
+
+const openingCourseOrder = ['london', 'italian', 'queens-gambit', 'english', 'ruy-lopez', 'caro-kann', 'french', 'scandinavian', 'kings-indian', 'sicilian'];
+const allOpeningCourses = [...coreOpeningCourses, ...additionalOpeningCourses];
+export const openingCourses: OpeningCourse[] = openingCourseOrder.map((id) => {
+  const course = allOpeningCourses.find((item) => item.id === id);
+  if (!course) throw new Error(`No existe el curso de apertura ${id}`);
+  return course;
+});

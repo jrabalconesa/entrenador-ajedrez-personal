@@ -6,6 +6,7 @@ import {
   getExerciseProgress,
   getExerciseWeight,
   getOverallMasteryFloor,
+  getTacticalMotifStats,
   recordAttemptProgress,
   selectNextExercise
 } from '../logic/adaptive';
@@ -72,6 +73,47 @@ describe('lógica adaptativa', () => {
     expect(getExerciseWeight(weakExercise, attempts)).toBeGreaterThan(getExerciseWeight(strongExercise, attempts));
   });
 
+  it('reconstruye debilidades por motivo sin cambiar el esquema de intentos', () => {
+    const fork = exercise({ id: 'fork-source', tags: ['tenedor', 'caballo'] });
+    const pin = exercise({ id: 'pin-source', tags: ['clavada'] });
+    const attempts = [
+      attempt({ exerciseId: fork.id, correct: false }),
+      attempt({ exerciseId: fork.id, correct: false }),
+      attempt({ exerciseId: pin.id, correct: true })
+    ];
+
+    expect(getTacticalMotifStats([fork, pin], attempts)).toEqual([
+      { motif: 'tenedor', label: 'Tenedores', total: 2, correct: 0, mistakes: 2, accuracy: 0 },
+      { motif: 'clavada', label: 'Clavadas', total: 1, correct: 1, mistakes: 0, accuracy: 100 }
+    ]);
+  });
+
+  it('generaliza un fallo hacia una posición nueva con el mismo motivo', () => {
+    const failed = exercise({ id: 'failed-fork', tags: ['tenedor'], fen: '4k3/8/8/8/8/8/4K3/8 w - - 0 1' });
+    const related = exercise({ id: 'new-fork', tags: ['tenedor'], fen: '4k3/8/8/8/8/8/5K2/8 w - - 0 1' });
+    const unrelated = exercise({ id: 'new-pin', tags: ['clavada'], fen: '4k3/8/8/8/8/8/6K1/8 w - - 0 1' });
+    const failedAttempt = attempt({ exerciseId: failed.id, correct: false });
+
+    expect(
+      selectNextExercise([failed, unrelated, related], [failedAttempt], {
+        seenExerciseIds: [failed.id],
+        random: () => 0
+      })?.id
+    ).toBe(related.id);
+  });
+  it('deja de reforzar un motivo cuando alcanza el 80% de acierto', () => {
+    const source = exercise({ id: 'source', tags: ['tenedor'] });
+    const related = exercise({ id: 'related', tags: ['tenedor'], fen: '4k3/8/8/8/8/8/5K2/8 w - - 0 1' });
+    const unrelated = exercise({ id: 'unrelated', tags: ['clavada'], fen: '4k3/8/8/8/8/8/6K1/8 w - - 0 1' });
+    const learned = [
+      attempt({ exerciseId: source.id, correct: false }),
+      ...Array.from({ length: 4 }, (_, index) => attempt({ id: `learned-${index}`, exerciseId: source.id, correct: true }))
+    ];
+
+    const selected = selectNextExercise([related, unrelated], learned, { random: () => 0 });
+    expect(selected?.id).toBe('related');
+    expect(getExerciseWeight(related, learned)).toBe(getExerciseWeight(unrelated, learned));
+  });
   it('programa revisiones a 1, 3 y 7 días cuando se falla', () => {
     const dates = buildReviewDates(new Date('2026-06-29T10:00:00.000Z'));
 

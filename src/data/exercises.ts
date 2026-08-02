@@ -1,4 +1,5 @@
 import type { Exercise, ExerciseCategory } from '../types';
+import { advancedExercises } from './advancedExercises';
 
 export const openingRoadmap = [
   {
@@ -7,6 +8,7 @@ export const openingRoadmap = [
       { name: 'Sistema Londres', difficulty: 'más fácil', idea: 'Esquema fijo con d4, Bf4, Nf3, e3, c3 y desarrollo tranquilo.' },
       { name: 'Apertura Italiana', difficulty: 'fácil', idea: 'Desarrollo natural y presión directa sobre f7.' },
       { name: 'Gambito de Dama', difficulty: 'intermedia', idea: 'Presión sobre d5 y estructuras de peones claras.' },
+      { name: 'Apertura Inglesa', difficulty: 'intermedia', idea: 'Control flexible de d5 y fianchetto del alfil de rey.' },
       { name: 'Apertura Española', difficulty: 'más difícil', idea: 'Presión estratégica sobre e5 con mucha teoría y maniobras.' }
     ]
   },
@@ -15,13 +17,14 @@ export const openingRoadmap = [
     openings: [
       { name: 'Defensa Caro-Kann', difficulty: 'más fácil', idea: 'Estructura sólida con ...c6 y ...d5.' },
       { name: 'Defensa Francesa', difficulty: 'intermedia', idea: 'Centro claro con ...e6 y ...d5, aceptando el problema del alfil de c8.' },
+      { name: 'Defensa Escandinava', difficulty: 'intermedia', idea: 'Golpe inmediato ...d5 y desarrollo rápido tras recolocar la dama.' },
       { name: 'Defensa India de Rey', difficulty: 'avanzada', idea: 'Sistema fijo con ...Nf6, ...g6, ...Bg7 y contraataque en el flanco de rey.' },
       { name: 'Defensa Siciliana', difficulty: 'más difícil', idea: 'Juego asimétrico y agudo contra 1.e4 con mucha teoría.' }
     ]
   }
 ] as const;
 
-export const exercises: Exercise[] = [
+const coreExercises: Exercise[] = [
   {
     id: 'pc-01',
     category: 'piezas colgadas',
@@ -1067,3 +1070,5 @@ export const categories: ExerciseCategory[] = [
   'aperturas populares',
   'medio juego'
 ];
+
+export const exercises: Exercise[] = [...coreExercises, ...advancedExercises];

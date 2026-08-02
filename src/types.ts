@@ -145,6 +145,7 @@ export interface TrainingDayProgress {
 export interface OpeningMove {
   san: string;
   explanation: string;
+  alternatives?: { san: string; explanation: string }[];
 }
 
 export interface OpeningLine {
@@ -158,6 +159,32 @@ export interface OpeningLine {
   keyIdeas: string[];
 }
 
+export interface OpeningQuizQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  answer: number;
+  explanation: string;
+  motif: string;
+}
+
+export interface OpeningLearningContent {
+  structure: string;
+  whitePlans: string[];
+  blackPlans: string[];
+  breaks: string[];
+  typicalErrors: string[];
+  pocketSummary: string;
+  referenceFen: string;
+  transitionQuestion: OpeningQuizQuestion;
+  quizzes: OpeningQuizQuestion[];
+  modelGame: {
+    title: string;
+    moves: string;
+    lesson: string;
+  };
+}
+
 export interface OpeningCourse {
   id: string;
   name: string;
@@ -166,6 +193,24 @@ export interface OpeningCourse {
   summary: string;
   plan: string[];
   lines: OpeningLine[];
+}
+
+export interface OpeningAttempt {
+  id: string;
+  courseId: string;
+  activity: 'line' | 'quiz' | 'transition' | 'model';
+  correct: boolean;
+  mistakes: number;
+  motifs: string[];
+  date: string;
+}
+
+export interface OpeningRecognition {
+  courseId: string;
+  courseName: string;
+  matchedPlies: number;
+  firstDeparture?: string;
+  suggestedPlan: string;
 }
 
 export type ConceptGroup = 'Tácticas y movimientos clave' | 'Movimientos especiales y reglas' | 'Conceptos de la partida' | 'Finales';

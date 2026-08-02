@@ -266,8 +266,9 @@ export function selectNextExercise(
   const shownFens = new Set((options.shownFens ?? []).map(normalizeFenForSession));
   const random = options.random ?? Math.random;
   const preferences = options.preferences;
-  const hasRecentFailure = attempts
+  const hasRecentFailure = [...attempts]
     .filter((attempt) => attempt.attemptKind !== 'diagnostic')
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(-2)
     .some((attempt) => !attempt.correct);
   const eligible = exercises.filter(

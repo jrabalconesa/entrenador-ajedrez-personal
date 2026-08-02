@@ -76,11 +76,12 @@ function readAttemptsFromKey(key: string, backupInvalid: boolean): ExerciseAttem
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed) || !parsed.every(isAttemptLike)) {
       if (backupInvalid) backupAndReset(key, raw);
-      return [];
+      return null;
     }
     return parsed.map(normalizeAttempt);
   } catch {
-    return [];
+    if (backupInvalid) backupAndReset(key, raw);
+    return null;
   }
 }
 
@@ -125,7 +126,34 @@ function backupAndReset(key: string, raw: string) {
 }
 
 export function loadGames(): SavedGame[] {
-  return readJson<SavedGame[]>(GAMES_KEY, []);
+  const raw = localStorage.getItem(GAMES_KEY);
+  if (!raw) return [];
+
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed) || !parsed.every(isSavedGameLike)) {
+      backupAndReset(GAMES_KEY, raw);
+      return [];
+    }
+    return parsed;
+  } catch {
+    backupAndReset(GAMES_KEY, raw);
+    return [];
+  }
+}
+
+function isSavedGameLike(value: unknown): value is SavedGame {
+  if (!value || typeof value !== 'object') return false;
+  const game = value as Partial<SavedGame>;
+  return (
+    typeof game.id === 'string' &&
+    typeof game.date === 'string' &&
+    typeof game.pgn === 'string' &&
+    (game.color === 'blancas' || game.color === 'negras' || game.color === 'sin indicar') &&
+    typeof game.result === 'string' &&
+    typeof game.opponent === 'string' &&
+    Array.isArray(game.errors)
+  );
 }
 
 export function saveGame(game: SavedGame) {

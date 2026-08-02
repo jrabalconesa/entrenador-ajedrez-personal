@@ -1,4 +1,4 @@
-const CACHE_NAME = 'entrenador-ajedrez-v1';
+const CACHE_NAME = 'entrenador-ajedrez-v1.0.1';
 
 self.addEventListener('install', () => {
   self.skipWaiting();

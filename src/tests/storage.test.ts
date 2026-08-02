@@ -210,4 +210,27 @@ describe('almacenamiento local', () => {
     expect(memory.has('epa_attempts_v2')).toBe(false);
     expect([...memory.keys()].some((key) => key.startsWith('epa_attempts_v2_backup_'))).toBe(true);
   });
+  it('recupera el historial antiguo si la clave actual de intentos está corrupta', () => {
+    memory.set('epa_attempts_v2', '{mal');
+    memory.set('epa_attempts_v1', JSON.stringify([{
+      id: 'old',
+      exerciseId: 'pc-01',
+      category: 'piezas colgadas',
+      difficulty: 1,
+      correct: true,
+      seconds: 8,
+      date: '2026-06-29T10:00:00.000Z'
+    }]));
+
+    expect(loadAttempts().map((attempt) => attempt.id)).toEqual(['old']);
+    expect([...memory.keys()].some((key) => key.startsWith('epa_attempts_v2_backup_'))).toBe(true);
+  });
+
+  it('respalda y descarta partidas con una estructura incompatible', () => {
+    memory.set('epa_games_v1', JSON.stringify([{ id: 'broken', errors: null }]));
+
+    expect(loadGames()).toEqual([]);
+    expect(memory.has('epa_games_v1')).toBe(false);
+    expect([...memory.keys()].some((key) => key.startsWith('epa_games_v1_backup_'))).toBe(true);
+  });
 });

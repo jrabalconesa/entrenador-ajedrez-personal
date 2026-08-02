@@ -322,4 +322,14 @@ describe('lógica adaptativa', () => {
       getExerciseWeight(baseExercise, [], new Date('2026-06-29T10:00:00.000Z'))
     );
   });
+  it('detecta fallos recientes aunque los intentos estén guardados del más nuevo al más antiguo', () => {
+    const challenge = exercise({ id: 'challenge', difficulty: 2 });
+    const attemptsNewestFirst = [
+      attempt({ id: 'recent-fail', correct: false, date: '2026-06-29T10:00:00.000Z' }),
+      attempt({ id: 'older-success', correct: true, date: '2026-06-28T10:00:00.000Z' }),
+      attempt({ id: 'oldest-success', correct: true, date: '2026-06-27T10:00:00.000Z' })
+    ];
+
+    expect(selectNextExercise([challenge], attemptsNewestFirst, { random: () => 0 })).toBeNull();
+  });
 });

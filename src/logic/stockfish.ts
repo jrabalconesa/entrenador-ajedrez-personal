@@ -78,22 +78,26 @@ export class StockfishClient {
   constructor(private readonly workerUrl = getDefaultStockfishWorkerUrl()) {}
 
   async analyzeFen(fen: string, options: StockfishAnalyzeOptions = {}): Promise<StockfishLine> {
-    const worker = await this.getWorker(options.timeoutMs);
-
     if (this.pending) {
       this.pending.reject(new Error('Ya hay un análisis de motor en curso.'));
       window.clearTimeout(this.pending.timer);
       this.pending = null;
+      this.resetWorker();
     }
+
+    const worker = await this.getWorker(options.timeoutMs);
 
     return new Promise<StockfishLine>((resolve, reject) => {
       const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-      const timer = window.setTimeout(() => {
+      const analysis: PendingAnalysis = { fen, resolve, reject, timer: 0, latest: {} };
+      analysis.timer = window.setTimeout(() => {
+        if (this.pending !== analysis) return;
         this.pending = null;
+        this.resetWorker();
         reject(new Error('Stockfish tardó demasiado en responder.'));
       }, timeoutMs);
 
-      this.pending = { fen, resolve, reject, timer, latest: {} };
+      this.pending = analysis;
       worker.postMessage('ucinewgame');
       worker.postMessage(`position fen ${fen}`);
       if (options.depth) {
@@ -110,9 +114,7 @@ export class StockfishClient {
       this.pending.reject(new Error('Motor detenido.'));
       this.pending = null;
     }
-    this.worker?.terminate();
-    this.worker = null;
-    this.ready = false;
+    this.resetWorker();
   }
 
   private async getWorker(timeoutMs = DEFAULT_TIMEOUT_MS): Promise<Worker> {
@@ -132,7 +134,10 @@ export class StockfishClient {
     };
 
     await new Promise<void>((resolve, reject) => {
-      const timer = window.setTimeout(() => reject(new Error('Stockfish no respondió al iniciar.')), timeoutMs);
+      const timer = window.setTimeout(() => {
+        this.resetWorker();
+        reject(new Error('Stockfish no respondió al iniciar.'));
+      }, timeoutMs);
       const previousHandler = this.worker?.onmessage ?? null;
       if (!this.worker) return reject(new Error('No se pudo crear el motor.'));
       this.worker.onmessage = (event: MessageEvent<string>) => {
@@ -148,6 +153,12 @@ export class StockfishClient {
     });
 
     return this.worker;
+  }
+
+  private resetWorker() {
+    this.worker?.terminate();
+    this.worker = null;
+    this.ready = false;
   }
 
   private handleMessage(message: string) {

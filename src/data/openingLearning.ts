@@ -23,7 +23,12 @@ export const openingLearning: Record<string, OpeningLearningContent> = {
     'r2q1rk1/bpp2ppp/p1npbn2/4p3/4P3/1BPP1N1P/PP1N1PP1/R1BQR1K1 b - - 4 10',
     q('italian-plan', 'Con ambos reyes seguros, ¿qué ruptura organiza el juego blanco?', ['d4', 'g4', 'b4'], 0, 'd4 cuestiona e5 y activa las piezas centrales.', 'ruptura central'),
     '1.e4 e5 2.Cf3 Cc6 3.Ac4 Ac5 4.c3 Cf6 5.d3 d6 6.O-O O-O 7.Te1 a6 8.h3 h6 9.Cbd2 Ae6 10.Ab3 Te8 11.Cf1 d5',
-    'La ruptura central llega después de que ambos bandos hayan coordinado sus piezas.'
+    'La ruptura central llega después de que ambos bandos hayan coordinado sus piezas.',
+    [
+      study('ITA-P03', 'posición esencial', 'La posición base de la Italiana', 'r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4', 'Reconoce la presión sobre f7 sin confundirla con un ataque inmediato.', 'Enrocar, jugar c3 y preparar d4.', 'Desarrollar ...Cf6, enrocar y disputar d4.'),
+      study('ITA-S01', 'estructura típica', 'Centro abierto', 'r1bq1rk1/pppp1ppp/1bn2n2/8/2BPP3/5N2/PP3PPP/RNBQ1RK1 w - - 1 8', 'Las columnas y diagonales abiertas premian la actividad de las piezas.', 'Desarrollar Cc3 y activar las torres.', 'Completar desarrollo y disputar las columnas.'),
+      study('ITA-S03', 'estructura típica', 'Centro cerrado', 'r1bqk2r/ppp2ppp/2np1n2/2b1p3/2B1P3/2PP1N2/PP3PPP/RNBQ1RK1 b kq - 0 6', 'Comprende las maniobras que preparan la ruptura d4.', 'Jugar Te1 y Cbd2-f1-g3 antes de d4.', 'Preparar ...d5 y generar contrajuego central.')
+    ]
   ),
   'queens-gambit': lesson(
     'Centro clásico de peón de dama; puede aparecer la estructura Carlsbad o un peón aislado.',
@@ -47,7 +52,12 @@ export const openingLearning: Record<string, OpeningLearningContent> = {
     'r1bq1rk1/2pnbppp/p2p1n2/1p2p3/3PP3/1BP2N1P/PP3PP1/RNBQR1K1 w - - 1 11',
     q('ruy-plan', '¿Por qué ...Cb8-d7 puede ser una buena maniobra?', ['Reagrupa el caballo para sostener e5 y f6', 'Gana material de inmediato', 'Evita el enroque blanco'], 0, 'La ruta mejora la coordinación aunque parezca retroceder.', 'maniobra'),
     '1.e4 e5 2.Cf3 Cc6 3.Ab5 a6 4.Aa4 Cf6 5.O-O Ae7 6.Te1 b5 7.Ab3 d6 8.c3 O-O 9.h3 Cb8 10.d4 Cbd7 11.Cbd2 Ab7 12.Ac2 Te8',
-    'La posición tranquila esconde una lucha preparada por el centro.'
+    'La posición tranquila esconde una lucha preparada por el centro.',
+    [
+      study('ESP-P03', 'posición esencial', 'La presión española', 'r1bqkbnr/1ppp1ppp/p1n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 4', 'Reconoce la tensión entre Ab5, Cc6 y e5.', 'Conservar el alfil con Aa4 y preparar O-O.', 'Desarrollar ...Cf6 atacando e4 y ganar espacio con ...b5.'),
+      study('ESP-S02', 'estructura típica', 'Centro tenso', 'r1bq1rk1/2pnbppp/p2p1n2/1p2p3/3PP3/1BP2N1P/PP3PP1/RNBQR1K1 w - - 1 11', 'Decide si mantener o resolver la tensión según la actividad.', 'Reforzar e4 y completar Cbd2-f1-g3.', 'Elegir el momento de ...exd4, ...d5 o ...c5.'),
+      study('ESP-S03', 'estructura típica', 'Centro cerrado', 'r1b2rk1/2qnbp1p/p2p1np1/1ppPp3/4P3/1BP2NNP/PP3PP1/R1BQR1K1 b - - 1 14', 'Maniobra sin permitir la ruptura liberadora del rival.', 'Preparar Cg3-f5 y actuar en el flanco de rey.', 'Buscar ...c4 o ...f5 y evitar una defensa pasiva.')
+    ]
   ),
   'caro-kann': lesson(
     'Cadena c6-d5-e6 y estructura sana; el alfil de c8 debe salir antes de ...e6.',
@@ -97,6 +107,23 @@ export const openingLearning: Record<string, OpeningLearningContent> = {
     '1.e4 c5 2.Cf3 d6 3.d4 cxd4 4.Cxd4 Cf6 5.Cc3 Cc6 6.Ae3 e6 7.Dd2 Ae7 8.O-O-O O-O 9.f3 a6 10.g4 Cd7 11.h4 Cde5 12.h5',
     'Los enroques y la estructura explican los ataques en flancos opuestos.'
   ),
+  scotch: lesson(
+    'Centro abierto tras el cambio de los peones e; las piezas entran con tiempos y los reyes expuestos son vulnerables.',
+    ['Desarrollar Cc3 y Ae3.', 'Enrocar pronto.', 'Usar las columnas centrales antes de empujar peones laterales.'],
+    ['Atacar el caballo de d4.', 'Presionar e4.', 'Completar desarrollo con ...Cf6 y ...Ac5.'],
+    ['d4 para blancas', '...d5 para negras si está preparado'],
+    ['Recapturar en d4 con la dama.', 'Buscar peones laterales con el rey en el centro.', 'Defender e4 con jugadas pasivas.'],
+    'Abre con d4, desarrolla al recuperar y aprovecha las líneas antes de iniciar aventuras laterales.',
+    'r1bqkbnr/pppp1ppp/2n5/8/3NP3/8/PPP2PPP/RNBQKB1R b KQkq - 0 4',
+    q('scotch-plan', 'Tras 3...exd4, ¿qué recaptura desarrolla una pieza?', ['Cxd4', 'Dxd4', 'c3'], 0, 'Cxd4 recupera el peón y coloca el caballo en una casilla central activa.', 'desarrollo con tiempo'),
+    '1.e4 e5 2.Cf3 Cc6 3.d4 exd4 4.Cxd4 Ac5 5.Ae3 Df6 6.c3 Cge7 7.Cc2 Ab6 8.Axb6 axb6 9.Cd2 O-O 10.Ae2 d5',
+    'La apertura temprana del centro exige desarrollo rápido y atención constante a e4 y d4.',
+    [
+      study('ESC-P03', 'posición esencial', 'La ruptura 3.d4 obliga a decidir', 'r1bqkbnr/pppp1ppp/2n5/8/3pP3/5N2/PPP2PPP/RNBQKB1R w KQkq - 0 4', 'El desarrollo rápido vale más que capturar un peón lateral.', 'Recuperar con Cxd4 y seguir desarrollando.', 'Presionar e4 y el caballo central con piezas.'),
+      study('ESC-S01', 'estructura típica', 'Centro abierto', 'r1bqkbnr/pppp1ppp/2n5/8/3NP3/8/PPP2PPP/RNBQKB1R b KQkq - 0 4', 'Con la columna d abierta, cada tiempo y la seguridad del rey importan.', 'Desarrollar Cc3, Ae3 y enrocar.', 'Atacar d4 con ...Cf6 o ...Ac5 y enrocar.'),
+      study('ESC-S03', 'estructura típica', 'Peón negro aislado en d5', 'r1bqkb1r/p1p2ppp/5n2/3p4/8/3B4/PPP2PPP/RNBQK2R w KQkq - 0 8', 'El peón aislado da espacio, pero necesita actividad para no ser una debilidad.', 'Bloquear y presionar d5 sin permitir ...d4.', 'Activar piezas con ...c5, ...Ae6 y ...Tc8.')
+    ]
+  ),
   scandinavian: lesson(
     'Blancas obtienen centro d4; negras coordinan una estructura c6-e6 después de recolocar la dama.',
     ['Desarrollar con tiempo contra la dama.', 'Conservar el centro.', 'Enrocar antes de buscar aventuras.'],
@@ -137,7 +164,8 @@ function lesson(
   referenceFen: string,
   transitionQuestion: ReturnType<typeof q>,
   modelMoves: string,
-  modelLesson: string
+  modelLesson: string,
+  studyMap?: OpeningLearningContent['studyMap']
 ): OpeningLearningContent {
   return {
     structure,
@@ -152,6 +180,19 @@ function lesson(
       transitionQuestion,
       q(`${transitionQuestion.id}-error`, '¿Qué enfoque evita el error típico de esta apertura?', [typicalErrors[0], pocketSummary, typicalErrors[1]], 1, pocketSummary, 'comprensión de apertura')
     ],
-    modelGame: { title: 'Partida modelo simplificada', moves: modelMoves, lesson: modelLesson }
+    modelGame: { title: 'Partida modelo simplificada', moves: modelMoves, lesson: modelLesson },
+    studyMap
   };
+}
+
+function study(
+  id: string,
+  kind: 'posición esencial' | 'estructura típica',
+  title: string,
+  fen: string,
+  objective: string,
+  whitePlan: string,
+  blackPlan: string
+) {
+  return { id, kind, title, fen, objective, whitePlan, blackPlan };
 }

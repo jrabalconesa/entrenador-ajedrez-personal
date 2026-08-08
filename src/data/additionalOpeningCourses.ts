@@ -2,6 +2,19 @@ import type { OpeningCourse } from '../types';
 
 export const additionalOpeningCourses: OpeningCourse[] = [
   {
+    id: 'scotch', name: 'Apertura Escocesa', side: 'blancas', difficulty: 3,
+    summary: 'Apertura directa: las blancas juegan d4 pronto, abren el centro y aprovechan el desarrollo activo.',
+    plan: ['Abrir el centro con d4.', 'Recapturar con Cxd4 y desarrollar con tiempos.', 'Enrocar antes de iniciar acciones laterales.'],
+    lines: [{
+      id: 'scotch-main', name: 'Escocesa clásica con ...Ac5', stage: 'Centro abierto',
+      summary: 'Al desaparecer los peones de e, cada tiempo de desarrollo cuenta y los reyes deben ponerse a salvo.',
+      whitePlan: ['Desarrollar Cc3.', 'Sostener e4 sin mover la dama varias veces.', 'Enrocar y ocupar las columnas centrales.'],
+      blackPlan: ['Presionar el caballo de d4.', 'Desarrollar ...Cf6 y ...Ac5 con actividad.', 'Golpear e4 antes de que las blancas consoliden.'],
+      keyIdeas: ['d4 abre el centro pronto.', 'Cxd4 desarrolla al recuperar.', 'La actividad compensa más que un peón lateral.'],
+      moves: moves('e4|Ocupa el centro y abre líneas.;e5|Las negras igualan la presencia central.;Nf3|Desarrolla atacando e5.;Nc6|Defiende e5 y controla d4.;d4|La ruptura escocesa abre el centro de inmediato.;exd4|Las negras evitan que el blanco conserve dos peones centrales.;Nxd4|El caballo recupera desarrollándose hacia una casilla activa.;Bc5|El alfil presiona d4 y f2.;Be3|El alfil sostiene el caballo y gana un tiempo sobre Ac5.;Qf6|La dama aumenta la presión sobre d4.;c3|Refuerza el centro y ofrece una retirada estable.;Nge7|Las negras desarrollan sin bloquear la dama.;Nc2|El caballo se conserva y deja paso al peón c.;O-O|Las negras ponen el rey a salvo.')
+    }]
+  },
+  {
     id: 'scandinavian', name: 'Defensa Escandinava', side: 'negras', difficulty: 2,
     summary: 'Respuesta directa contra 1.e4: la dama se recoloca y las negras completan el desarrollo con una estructura clara.',
     plan: ['Golpear e4 con ...d5.', 'Recolocar la dama sin bloquear el desarrollo.', 'Coordinar rápido con ...c6, ...Ag4 y ...e6.'],

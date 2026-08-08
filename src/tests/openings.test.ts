@@ -13,7 +13,7 @@ describe('entrenador de aperturas', () => {
   });
 
   it('incluye repertorio para blancas y negras', () => {
-    expect(openingCourses.filter((course) => course.side === 'blancas')).toHaveLength(5);
+    expect(openingCourses.filter((course) => course.side === 'blancas')).toHaveLength(6);
     expect(openingCourses.filter((course) => course.side === 'negras')).toHaveLength(5);
   });
 
@@ -88,6 +88,22 @@ describe('entrenador de aperturas', () => {
       expect(line.summary?.length).toBeGreaterThan(40);
       expect(line.whitePlan).toHaveLength(3);
       expect(line.blackPlan).toHaveLength(3);
+    });
+  });
+
+  it('ofrece mapas legales de posiciones para las aperturas del Laboratorio', () => {
+    ['italian', 'ruy-lopez', 'scotch'].forEach((courseId) => {
+      const map = openingLearning[courseId].studyMap;
+
+      expect(map, courseId).toHaveLength(3);
+      expect(map?.some((item) => item.kind === 'posición esencial'), courseId).toBe(true);
+      expect(map?.some((item) => item.kind === 'estructura típica'), courseId).toBe(true);
+      map?.forEach((item) => {
+        const game = new Chess(item.fen);
+        expect(game.fen(), item.id).toBe(item.fen);
+        expect(item.whitePlan.length, item.id).toBeGreaterThan(25);
+        expect(item.blackPlan.length, item.id).toBeGreaterThan(25);
+      });
     });
   });
 });

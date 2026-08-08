@@ -183,6 +183,17 @@ export interface OpeningLearningContent {
     moves: string;
     lesson: string;
   };
+  studyMap?: OpeningStudyPosition[];
+}
+
+export interface OpeningStudyPosition {
+  id: string;
+  kind: 'posición esencial' | 'estructura típica';
+  title: string;
+  fen: string;
+  objective: string;
+  whitePlan: string;
+  blackPlan: string;
 }
 
 export interface OpeningCourse {

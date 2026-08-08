@@ -180,6 +180,7 @@ describe('ejercicios de ajedrez', () => {
     const requestedOpenings = [
       'Sistema Londres',
       'Apertura Italiana',
+      'Apertura Escocesa',
       'Gambito de Dama',
       'Apertura Inglesa',
       'Apertura Española',

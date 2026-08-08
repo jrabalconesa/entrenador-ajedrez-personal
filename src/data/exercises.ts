@@ -7,6 +7,7 @@ export const openingRoadmap = [
     openings: [
       { name: 'Sistema Londres', difficulty: 'más fácil', idea: 'Esquema fijo con d4, Bf4, Nf3, e3, c3 y desarrollo tranquilo.' },
       { name: 'Apertura Italiana', difficulty: 'fácil', idea: 'Desarrollo natural y presión directa sobre f7.' },
+      { name: 'Apertura Escocesa', difficulty: 'intermedia', idea: 'Ruptura temprana d4, centro abierto y desarrollo activo.' },
       { name: 'Gambito de Dama', difficulty: 'intermedia', idea: 'Presión sobre d5 y estructuras de peones claras.' },
       { name: 'Apertura Inglesa', difficulty: 'intermedia', idea: 'Control flexible de d5 y fianchetto del alfil de rey.' },
       { name: 'Apertura Española', difficulty: 'más difícil', idea: 'Presión estratégica sobre e5 con mucha teoría y maniobras.' }
@@ -1026,6 +1027,20 @@ const coreExercises: Exercise[] = [
     hint: 'El alfil ya está en g7 y el camino del rey está libre.',
     tags: ['India de Rey', 'enroque', 'estructura cerrada'],
     teachingPoint: 'Completar la estructura de India de Rey antes del contraataque.'
+  },
+  {
+    id: 'ap-17',
+    category: 'aperturas populares',
+    difficulty: 3,
+    fen: 'r1bqkbnr/pppp1ppp/2n5/8/3pP3/5N2/PPP2PPP/RNBQKB1R w KQkq - 0 4',
+    sideToMove: 'w',
+    question: 'Apertura Escocesa. Tras 3.d4 exd4, ¿qué recaptura recupera el peón y desarrolla una pieza?',
+    expectedMove: 'Nxd4',
+    explanation: 'Nxd4 recupera el peón con el caballo y lo centraliza. La dama no necesita exponerse cuando una pieza menor puede desarrollar con tiempo.',
+    practicalRule: 'En un centro abierto, prefiere la recaptura que desarrolla una pieza y acerca el enroque.',
+    hint: 'El caballo de f3 puede recuperar en el centro.',
+    tags: ['Escocesa', 'centro abierto', 'desarrollo'],
+    teachingPoint: 'Reconocer la recaptura natural que define la Apertura Escocesa.'
   },
   {
     id: 'ap-15',

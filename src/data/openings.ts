@@ -276,7 +276,7 @@ const coreOpeningCourses: OpeningCourse[] = [
   }
 ];
 
-const openingCourseOrder = ['london', 'italian', 'queens-gambit', 'english', 'ruy-lopez', 'caro-kann', 'french', 'scandinavian', 'kings-indian', 'sicilian'];
+const openingCourseOrder = ['london', 'italian', 'scotch', 'queens-gambit', 'english', 'ruy-lopez', 'caro-kann', 'french', 'scandinavian', 'kings-indian', 'sicilian'];
 const allOpeningCourses = [...coreOpeningCourses, ...additionalOpeningCourses];
 export const openingCourses: OpeningCourse[] = openingCourseOrder.map((id) => {
   const course = allOpeningCourses.find((item) => item.id === id);

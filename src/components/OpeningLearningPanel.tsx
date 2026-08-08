@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Chessboard } from 'react-chessboard';
 import { openingLearning } from '../data/openingLearning';
 import { openingCourses } from '../data/openings';
@@ -7,19 +7,27 @@ import { boardNotationOptions } from '../logic/boardStyle';
 import { loadOpeningAttempts, saveOpeningAttempt } from '../storage/localStore';
 import type { OpeningCourse } from '../types';
 
-type LearningTab = 'lesson' | 'quiz' | 'model' | 'week';
+type LearningTab = 'lesson' | 'map' | 'quiz' | 'model' | 'week';
 
 export default function OpeningLearningPanel({ course, onCourseChange }: { course: OpeningCourse; onCourseChange: (courseId: string) => void }) {
   const content = openingLearning[course.id];
   const [tab, setTab] = useState<LearningTab>('lesson');
   const [questionIndex, setQuestionIndex] = useState(0);
   const [answer, setAnswer] = useState<number | null>(null);
+  const [studyIndex, setStudyIndex] = useState(0);
   const [attemptVersion, setAttemptVersion] = useState(0);
   const attempts = useMemo(() => loadOpeningAttempts(), [attemptVersion]);
   const recommendation = getRecommendedOpening(openingCourses, attempts);
   const weakMotifs = getOpeningWeakMotifs(attempts).slice(0, 3);
+  useEffect(() => {
+    setStudyIndex(0);
+    setAnswer(null);
+    setQuestionIndex(0);
+  }, [course.id]);
   if (!content) return null;
   const question = content.quizzes[questionIndex % content.quizzes.length];
+  const studyMap = content.studyMap ?? [];
+  const studyPosition = studyMap[studyIndex];
 
   const record = (activity: 'quiz' | 'transition' | 'model', correct: boolean, motifs: string[], mistakes = correct ? 0 : 1) => {
     saveOpeningAttempt({ id: crypto.randomUUID(), courseId: course.id, activity, correct, mistakes, motifs, date: new Date().toISOString() });
@@ -39,6 +47,7 @@ export default function OpeningLearningPanel({ course, onCourseChange }: { cours
       </div>
       <div className="mode-toggle" aria-label="Contenido didáctico">
         <button className={tab === 'lesson' ? 'active' : ''} onClick={() => setTab('lesson')} type="button">Planes</button>
+        {studyMap.length ? <button className={tab === 'map' ? 'active' : ''} onClick={() => setTab('map')} type="button">Mapa de posiciones</button> : null}
         <button className={tab === 'quiz' ? 'active' : ''} onClick={() => setTab('quiz')} type="button">Mini ejercicios</button>
         <button className={tab === 'model' ? 'active' : ''} onClick={() => setTab('model')} type="button">Partida modelo</button>
         <button className={tab === 'week' ? 'active' : ''} onClick={() => setTab('week')} type="button">Plan semanal</button>
@@ -48,6 +57,21 @@ export default function OpeningLearningPanel({ course, onCourseChange }: { cours
         <article><h3>Plan de Blancas</h3>{content.whitePlans.map((plan) => <span key={plan}>{plan}</span>)}</article>
         <article><h3>Plan de Negras</h3>{content.blackPlans.map((plan) => <span key={plan}>{plan}</span>)}</article>
         <article><h3>Errores frecuentes</h3>{content.typicalErrors.map((error) => <span key={error}>{error}</span>)}</article>
+      </div> : null}
+      {tab === 'map' && studyPosition ? <div className="opening-study-map">
+        <div className="opening-reference-board"><Chessboard options={{ position: studyPosition.fen, allowDragging: false, boardStyle: { width: 'min(100%, 360px)', borderRadius: '8px' }, darkSquareStyle: { backgroundColor: '#77906f' }, lightSquareStyle: { backgroundColor: '#eef0d8' }, ...boardNotationOptions }} /></div>
+        <div className="opening-study-copy">
+          <div className="opening-study-steps" aria-label="Posiciones del recorrido">
+            {studyMap.map((item, index) => <button className={index === studyIndex ? 'active' : ''} key={item.id} onClick={() => setStudyIndex(index)} type="button"><small>{index + 1}</small><span>{item.title}</span></button>)}
+          </div>
+          <article className="opening-study-card">
+            <span className="eyebrow">{studyPosition.kind}</span>
+            <h3>{studyPosition.title}</h3>
+            <p>{studyPosition.objective}</p>
+            <div className="opening-study-plans"><div><strong>Plan de Blancas</strong><p>{studyPosition.whitePlan}</p></div><div><strong>Plan de Negras</strong><p>{studyPosition.blackPlan}</p></div></div>
+            <p className="opening-study-question"><strong>Antes de mover:</strong> identifica la peor pieza y compara dos jugadas candidatas con estos planes.</p>
+          </article>
+        </div>
       </div> : null}
       {tab === 'quiz' ? <div className="opening-quiz-layout">
         <div className="opening-reference-board"><Chessboard options={{ position: content.referenceFen, allowDragging: false, boardStyle: { width: 'min(100%, 330px)', borderRadius: '8px' }, darkSquareStyle: { backgroundColor: '#77906f' }, lightSquareStyle: { backgroundColor: '#eef0d8' }, ...boardNotationOptions }} /></div>

@@ -38,7 +38,7 @@ export default function ProgressScreen({ attempts, games }: ProgressScreenProps)
   const visibleCategories = showAllCategories ? categories : (activeCategories.length > 0 ? activeCategories.slice(0, 6) : categories.slice(0, 6));
 
   return (
-    <section>
+    <section className="progress-screen">
       <SectionHeader
         eyebrow="Progreso"
         title="Lo importante es detectar patrones"
@@ -77,25 +77,44 @@ export default function ProgressScreen({ attempts, games }: ProgressScreenProps)
             <p className="compact-note">Mostrando {visibleCategories.length} de {categories.length} categorías para reducir ruido visual.</p>
           ) : null}
         </div>
-        <aside className="coaching-panel">
-          <h2>Resumen de la semana</h2>
-          <p>Has hecho {weekCount} ejercicio{weekCount === 1 ? '' : 's'} en los últimos 7 días.</p>
-          <h3>Tu principal mejora esta semana</h3>
-          <p>{accuracy >= 70 ? 'Detectas mejor las amenazas directas y las capturas sencillas.' : 'Estás construyendo el hábito de revisar antes de mover.'}</p>
-          <h3>Errores más repetidos</h3>
-          <p>{topError ? `${formatCategoryLabel(topError[0])} aparece ${topError[1]} vez${topError[1] === 1 ? '' : 'es'} en tus partidas.` : 'Aún no has marcado errores manuales en tus partidas.'}</p>
-          <h3>Temas que toca repasar</h3>
-          <p>{weakCategories.length > 0 ? weakCategories.join(', ') : 'Mantén repasos espaciados de Piezas colgadas y Amenazas del rival.'}</p>
-          <h3>Patrones tácticos detectados</h3>
-          <p>
-            {weakMotifs.length > 0
-              ? weakMotifs.map((motif) => `${motif.label}: ${motif.mistakes} fallo${motif.mistakes === 1 ? '' : 's'}`).join(' · ')
-              : 'Todavía no hay suficientes fallos etiquetados para detectar un patrón.'}
-          </p>
-          <h3>Aprendizaje de aperturas</h3>
-          <p>{openingAttempts.length} actividad{openingAttempts.length === 1 ? '' : 'es'} registrada{openingAttempts.length === 1 ? '' : 's'}.</p>
-          <p>{weakOpeningMotifs.length ? `Conviene reforzar: ${weakOpeningMotifs.map((item) => item.motif).join(', ')}.` : 'Completa mini ejercicios para detectar qué planes necesitan repaso.'}</p>          <h3>Tema prioritario</h3>
-          <p>{weakMotifs[0]?.label ?? weakCategories[0] ?? 'Revisar piezas indefensas antes de mover.'}</p>
+        <aside className="coaching-panel progress-summary">
+          <div className="progress-summary-heading">
+            <h2>Resumen de la semana</h2>
+            <p>Has hecho {weekCount} ejercicio{weekCount === 1 ? '' : 's'} en los últimos 7 días.</p>
+          </div>
+          <div className="progress-insights">
+            <article>
+              <h3>Principal mejora</h3>
+              <p>{accuracy >= 70 ? 'Detectas mejor las amenazas directas y las capturas sencillas.' : 'Estás construyendo el hábito de revisar antes de mover.'}</p>
+            </article>
+            <article>
+              <h3>Errores repetidos</h3>
+              <p>{topError ? `${formatCategoryLabel(topError[0])} aparece ${topError[1]} vez${topError[1] === 1 ? '' : 'es'} en tus partidas.` : 'Aún no has marcado errores manuales en tus partidas.'}</p>
+            </article>
+            <article>
+              <h3>Repaso recomendado</h3>
+              <p>{weakCategories.length > 0 ? weakCategories.join(', ') : 'Piezas colgadas y Amenazas del rival.'}</p>
+            </article>
+            <article>
+              <h3>Patrones tácticos</h3>
+              <p>
+                {weakMotifs.length > 0
+                  ? weakMotifs.map((motif) => `${motif.label}: ${motif.mistakes} fallo${motif.mistakes === 1 ? '' : 's'}`).join(' · ')
+                  : 'Aún faltan fallos etiquetados para detectar un patrón.'}
+              </p>
+            </article>
+            <article>
+              <h3>Aperturas</h3>
+              <p>
+                {openingAttempts.length} actividad{openingAttempts.length === 1 ? '' : 'es'}.
+                {' '}{weakOpeningMotifs.length ? `Refuerza: ${weakOpeningMotifs.map((item) => item.motif).join(', ')}.` : 'Completa mini ejercicios para detectar planes débiles.'}
+              </p>
+            </article>
+            <article className="priority-insight">
+              <h3>Tema prioritario</h3>
+              <p>{weakMotifs[0]?.label ?? weakCategories[0] ?? 'Revisar piezas indefensas antes de mover.'}</p>
+            </article>
+          </div>
         </aside>
       </div>
     </section>

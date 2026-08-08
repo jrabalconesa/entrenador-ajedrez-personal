@@ -515,7 +515,7 @@ export default function GamesScreen({ games, onGamesChanged }: GamesScreenProps)
   };
 
   return (
-    <section>
+    <section className="games-screen">
       <SectionHeader
         eyebrow="Mis partidas"
         title="Juega, guarda y revisa tus partidas"

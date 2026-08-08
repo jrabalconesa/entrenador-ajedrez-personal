@@ -1715,7 +1715,225 @@ textarea {
   background: #176b5d;
 }
 
-@media (max-width: 1180px) {
+.progress-summary {
+  display: grid;
+  gap: 14px;
+}
+
+.progress-summary-heading h2,
+.progress-summary-heading p,
+.progress-insights h3,
+.progress-insights p {
+  margin: 0;
+}
+
+.progress-summary-heading p,
+.progress-insights p {
+  color: #59677a;
+  line-height: 1.42;
+}
+
+.progress-summary-heading p {
+  margin-top: 6px;
+}
+
+.progress-insights {
+  display: grid;
+  gap: 10px;
+}
+
+.progress-insights article {
+  border-radius: 8px;
+  background: #f7faf8;
+  padding: 11px 12px;
+}
+
+.progress-insights h3 {
+  color: #176b5d;
+  font-size: 13px;
+  line-height: 1.25;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+.progress-insights .priority-insight {
+  border: 1px solid #b8d7cf;
+  background: #eef6f3;
+}
+
+@media (min-width: 1281px) {
+  .games-screen .section-header,
+  .progress-screen .section-header {
+    margin-bottom: 16px;
+  }
+
+  .games-screen .section-header p,
+  .progress-screen .section-header p {
+    font-size: 16px;
+    line-height: 1.4;
+  }
+
+  .games-screen .guided-game-panel {
+    grid-template-columns: minmax(220px, .56fr) minmax(380px, 1.05fr) minmax(300px, .86fr);
+    gap: 16px;
+    margin-bottom: 16px;
+    padding: 16px;
+  }
+
+  .games-screen .guided-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+    align-content: start;
+  }
+
+  .games-screen .guided-controls > label:first-child,
+  .games-screen .custom-fen-field,
+  .games-screen .guided-actions,
+  .games-screen .guided-move-form {
+    grid-column: 1 / -1;
+  }
+
+  .games-screen .guided-controls label {
+    gap: 5px;
+    font-size: 13px;
+  }
+
+  .games-screen .guided-controls select,
+  .games-screen .guided-controls input,
+  .games-screen .guided-controls textarea {
+    min-width: 0;
+    padding: 9px 10px;
+  }
+
+  .games-screen .learning-mode-toggle {
+    min-height: 42px;
+    padding: 8px 9px;
+    font-size: 12px;
+  }
+
+  .games-screen .guided-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .games-screen .guided-actions button {
+    min-height: 40px;
+    padding: 7px 8px;
+    font-size: 12px;
+  }
+
+  .games-screen .guided-move-form div {
+    max-width: none;
+  }
+
+  .games-screen .guided-game-layout {
+    display: contents;
+  }
+
+  .games-screen .board-panel {
+    align-self: start;
+    min-width: 0;
+  }
+
+  .games-screen .coach-commentary {
+    gap: 9px;
+    min-width: 0;
+  }
+
+  .games-screen .coach-commentary h2 {
+    font-size: 18px;
+  }
+
+  .games-screen .coach-log-entry,
+  .games-screen .guided-moves,
+  .games-screen .move-hint-list,
+  .games-screen .promotion-choice,
+  .games-screen .error-review-panel {
+    padding: 9px 10px;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .games-screen .traffic-legend {
+    gap: 5px;
+    font-size: 11px;
+  }
+
+  .games-screen .traffic-legend span {
+    padding: 5px 7px;
+  }
+
+  .games-screen .games-layout {
+    gap: 16px;
+  }
+
+  .games-screen .import-access-panel,
+  .games-screen .history-access-panel {
+    min-height: 96px;
+    padding: 14px 16px;
+  }
+
+  .games-screen .import-access-panel h2,
+  .games-screen .history-access-panel h2 {
+    font-size: 17px;
+  }
+
+  .games-screen .import-access-panel p,
+  .games-screen .history-access-panel p {
+    margin-top: 5px;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .progress-screen .stats-grid {
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  .progress-screen .stat-card {
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+
+  .progress-screen .stat-card strong {
+    font-size: 28px;
+  }
+
+  .progress-screen .progress-layout {
+    grid-template-columns: minmax(390px, .9fr) minmax(0, 1.1fr);
+    gap: 14px;
+  }
+
+  .progress-screen .progress-panel,
+  .progress-screen .coaching-panel {
+    padding: 16px;
+  }
+
+  .progress-screen .progress-panel {
+    gap: 12px;
+  }
+
+  .progress-screen .progress-row {
+    gap: 5px;
+  }
+
+  .progress-screen .progress-track {
+    height: 9px;
+  }
+
+  .progress-screen .progress-insights {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .progress-screen .progress-insights article {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 1280px) {
   .app-shell {
     grid-template-columns: 1fr;
   }
@@ -1835,9 +2053,13 @@ textarea {
   .opening-sidebar {
     display: none;
   }
+
+  .progress-insights {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
-@media (min-width: 641px) and (max-width: 1180px) {
+@media (min-width: 641px) and (max-width: 1280px) {
   .home-layout,
   .exercise-layout,
   .games-layout,
@@ -1851,6 +2073,207 @@ textarea {
 
   .concept-layout {
     grid-template-columns: minmax(220px, .7fr) minmax(340px, 1fr) minmax(280px, .85fr);
+  }
+}
+
+@media (min-width: 900px) and (max-width: 1280px) {
+  .sidebar {
+    padding: 10px 14px;
+  }
+
+  .nav-button {
+    min-height: 44px;
+  }
+
+  .main-content {
+    padding: 18px 24px;
+  }
+
+  .games-screen .section-header,
+  .progress-screen .section-header {
+    margin-bottom: 14px;
+  }
+
+  .games-screen .section-header p,
+  .progress-screen .section-header p {
+    font-size: 15px;
+    line-height: 1.4;
+  }
+
+  .games-screen .guided-game-panel {
+    grid-template-columns: minmax(205px, .56fr) minmax(340px, 1fr) minmax(220px, .72fr);
+    gap: 14px;
+    margin-bottom: 14px;
+    padding: 14px;
+  }
+
+  .games-screen .guided-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    align-content: start;
+  }
+
+  .games-screen .guided-controls > label:first-child,
+  .games-screen .custom-fen-field,
+  .games-screen .guided-actions,
+  .games-screen .guided-move-form {
+    grid-column: 1 / -1;
+  }
+
+  .games-screen .guided-controls label {
+    gap: 4px;
+    font-size: 12px;
+  }
+
+  .games-screen .guided-controls select,
+  .games-screen .guided-controls input,
+  .games-screen .guided-controls textarea {
+    min-width: 0;
+    padding: 8px 9px;
+  }
+
+  .games-screen .learning-mode-toggle {
+    min-height: 40px;
+    padding: 7px 8px;
+    font-size: 11px;
+  }
+
+  .games-screen .guided-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .games-screen .guided-actions button {
+    min-height: 38px;
+    padding: 6px;
+    font-size: 11px;
+  }
+
+  .games-screen .guided-move-form div {
+    max-width: none;
+  }
+
+  .games-screen .guided-game-layout {
+    display: contents;
+  }
+
+  .games-screen .board-panel,
+  .games-screen .coach-commentary {
+    min-width: 0;
+  }
+
+  .games-screen .board-panel {
+    width: min(100%, 430px);
+    justify-self: center;
+  }
+
+  .games-screen .coach-commentary {
+    gap: 8px;
+  }
+
+  .games-screen .coach-commentary h2 {
+    font-size: 16px;
+  }
+
+  .games-screen .coach-log-entry,
+  .games-screen .guided-moves,
+  .games-screen .move-hint-list,
+  .games-screen .promotion-choice,
+  .games-screen .error-review-panel {
+    padding: 8px 9px;
+    font-size: 12px;
+    line-height: 1.3;
+  }
+
+  .games-screen .traffic-legend {
+    gap: 4px;
+    font-size: 10px;
+  }
+
+  .games-screen .traffic-legend span {
+    padding: 4px 6px;
+  }
+
+  .games-screen .games-layout {
+    gap: 14px;
+  }
+
+  .games-screen .import-access-panel,
+  .games-screen .history-access-panel {
+    padding: 12px 14px;
+  }
+
+  .games-screen .import-access-panel h2,
+  .games-screen .history-access-panel h2 {
+    font-size: 16px;
+  }
+
+  .games-screen .import-access-panel p,
+  .games-screen .history-access-panel p {
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 1.3;
+  }
+
+  .progress-screen .stats-grid {
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .progress-screen .stat-card {
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+  }
+
+  .progress-screen .stat-card strong {
+    font-size: 26px;
+  }
+
+  .progress-screen .progress-layout {
+    gap: 12px;
+  }
+
+  .progress-screen .progress-panel,
+  .progress-screen .coaching-panel {
+    padding: 14px;
+  }
+
+  .progress-screen .progress-panel {
+    gap: 10px;
+  }
+
+  .progress-screen .progress-row {
+    gap: 4px;
+  }
+
+  .progress-screen .progress-track {
+    height: 8px;
+  }
+
+  .progress-screen .progress-summary {
+    gap: 10px;
+  }
+
+  .progress-screen .progress-insights {
+    gap: 8px;
+  }
+
+  .progress-screen .progress-insights article {
+    padding: 9px 10px;
+  }
+
+  .progress-screen .progress-insights p {
+    font-size: 13px;
+    line-height: 1.32;
+  }
+}
+
+@media (min-width: 1100px) and (max-width: 1280px) {
+  .progress-screen .progress-insights {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -2172,6 +2595,10 @@ textarea {
     display: none;
   }
 
+  .progress-insights {
+    grid-template-columns: 1fr;
+  }
+
   .opening-sidebar {
     display: none;
   }
@@ -2276,5 +2703,5 @@ textarea {
   .opening-sidebar, .opening-practice-panel { padding: 16px; }
   .opening-practice-panel .mode-toggle { flex-wrap: wrap; }
 }
-@media (max-width: 1180px) { .opening-learning-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 1280px) { .opening-learning-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 680px) { .opening-learning-summary { align-items: flex-start; flex-direction: column; } .opening-learning-hub .mode-toggle { grid-template-columns: repeat(2, minmax(0, 1fr)); } .opening-learning-grid, .opening-quiz-layout, .opening-study-map { grid-template-columns: 1fr; } .opening-study-plans { grid-template-columns: 1fr; } .opening-study-steps { grid-template-columns: 1fr; } }

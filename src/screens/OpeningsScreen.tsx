@@ -245,7 +245,6 @@ export default function OpeningsScreen() {
           ))}
         </div>
       </div>
-      <OpeningLearningPanel course={course} onCourseChange={changeCourse} />
       <div className="openings-layout">
         <aside className="opening-sidebar">
           <label>
@@ -460,6 +459,7 @@ export default function OpeningsScreen() {
           </div>
         </aside>
       </div>
+      <OpeningLearningPanel course={course} onCourseChange={changeCourse} />
     </section>
   );
 }

@@ -2164,7 +2164,7 @@ textarea {
   }
 
   .games-screen .board-panel {
-    width: min(100%, 430px);
+    width: min(100%, 390px);
     justify-self: center;
   }
 
